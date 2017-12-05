@@ -12,6 +12,8 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 #breakpoint search
 accurate_result=np.matrix([100,4]).T
+N_MonteCarlo = 10
+epsilon = 0.01
 def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
     regressionParameters = accurate_result #надо брать свободный член больше
     x_points = np.zeros(shape=[regressionSampleQuintity,len(regressionParameters)])
@@ -31,18 +33,24 @@ def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
 cycleOulierPercentage = 1.0
 while cycleOulierPercentage<100:
     print("Going to perform test with percentage {0:f}%....".format(cycleOulierPercentage))
-    x_points,y_points=modulateRegression(100,cycleOulierPercentage)
-    APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
-    tempHundredParams=APPROXIMATION_MODEL.fit().params
-    discrepancyHundred = np.squeeze(np.asarray(accurate_result.T-tempHundredParams))
-    # print(discrepancyHundred)
-
-    x_points,y_points=modulateRegression(3000,cycleOulierPercentage)
-    APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
-    tempThousandParams = APPROXIMATION_MODEL.fit().params
-    discrepancyThousand = np.squeeze(np.asarray(accurate_result.T-tempThousandParams))
-    # print(discrepancyThousand)
-    if np.linalg.norm(discrepancyHundred)<=np.linalg.norm(discrepancyThousand):
+    discrepancyHundred=0.0
+    discrepancyThousand=0.0
+    for i in range(1,int(N_MonteCarlo+1)):
+        x_points,y_points=modulateRegression(1000,cycleOulierPercentage)
+        APPROXIMATION_MODEL=sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
+        tempHundredParams=APPROXIMATION_MODEL.fit().params
+        discrepancyHundred += np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempHundredParams)))
+        # print("temp norm:{0:f}\n".format(np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempHundredParams)))))
+        x_points,y_points=modulateRegression(3000,cycleOulierPercentage)
+        APPROXIMATION_MODEL = sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
+        tempThousandParams = APPROXIMATION_MODEL.fit().params
+        discrepancyThousand += np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempThousandParams)))
+        # plt.plot(x_points.T[1],y_points,'ro')
+        # plt.show()
+    discrepancyHundred/=N_MonteCarlo
+    discrepancyThousand/=N_MonteCarlo
+    print("Disperancies: {0:f}, {1:f}".format(discrepancyHundred,discrepancyThousand))
+    if discrepancyHundred<=discrepancyThousand:
         print("Breakpoint for this approximation model is:{0:f}%".format(cycleOulierPercentage))
         break
     cycleOulierPercentage +=1
