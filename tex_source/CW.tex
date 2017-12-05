@@ -1,0 +1,112 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amssymb,amsmath}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+
+\newtheorem{theorem}{Теорема}
+\newenvironment{rowequmat}[1]{\left(\array{@{}#1@{}}}{\endarray\right)}
+\textheight=24cm
+\textwidth=16cm
+\oddsidemargin=0pt
+\topmargin=-1.5cm
+\parindent=24pt
+\title{Лабораторная работа 2}
+\author{\copyright Андрей Румянцев}
+\date{29 ноября 2016}
+\begin{document}
+\begin{titlepage}
+	\thispagestyle{empty}
+    \begin{center}
+        {\large БЕЛОРУССКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ \break}
+		{\\ \LARGE Курсовой проект \vspace{2in}}
+		{\\ \large Тема:"\textbf{Робастные оценки параметров регрессии при наличии группированной выборки}" \break}
+		{\newline \textsc{Андрей Румянцев, 7 группа}}
+	\end{center}
+	
+	\vfill
+		{\raggedleft Научный руководитель\\}
+		{\hfill  Агеева Е.~С.}\break
+		\center Минск, 2017
+\end{titlepage}
+
+\newpage
+
+\section{Введение}
+Существует несколько подходов для оценки параметров регрессии, но далеко не все устойчивы к возникновениям аномальных наблюдений.
+В реальной жизни аномальные наблюдения возникают постоянно, поэтому большинство методов просто неприменимо.
+В прошлом веке в работах Хьюбера была заложена теория робастного оценивания.\hfill\break
+Были предложены следующие робастные оценки:\hfill\break
+\begin{itemize}
+    \item М-Оценки\\
+    \item R-Оценки\\
+    \item L-Оценки
+\end{itemize}
+М-оценки -- некоторое подобие оценок максимального правдоподобия(ММП-оценки - частный случай), L-оценки строятся на основе линейных комбинаций порядковых статистик, R-оценки -- на основе ранговых статистик.
+В данном курсовом проекте я буду моделировать функцию регрессии с аномальными наблюдениями, анализировать точность методов и находить для разных методов так называемый ''breakpoint''--процент аномальных наблюдений, при котором увеличение количества наблюдений не повысит точность методов.
+
+
+\section{Теоретические сведения}
+На данном этапе будем работать с линейной регрессией:\hfill\break
+\begin{eqnarray}
+    y_i=\alpha+\beta_1 x_{i1}+\beta_2 x_{i2}+\dots+\beta_n x_{in}+\epsilon_i,
+\end{eqnarray}
+Где $y_i$ -- i-е наблюдение из N наблюдений, $x_i$ регрессоры, \{$\alpha,\beta_k, k=\overline{1,n}$\}-- параметры регрессии, а $\epsilon_i$ -- ошибка, распределение которой подчиняется нормальному закону с нулевым ожиданием и дисперсией $\sigma^2$.\hfill\break
+В нашей задаче считаем параметры \{$\alpha,\beta_k, k=\overline{1,n}$\} неизвестными, их нам и требуется найти.\hfill\break
+Теперь рассмотрим некоторые методы оценки параметров регрессии:
+\subsection{Метод Наименьших Квадратов}
+\subsection{М-оценки}
+\subsection{L-оценки}
+
+
+\section{Моделирование регрессии на языке Python}
+Подключим необходимые библиотеки:\hfill\break
+\begin{verbatim}
+import numpy as np
+import matplotlib.pyplot as plt
+from random import random
+import pylab
+import scipy
+from outliers import smirnov_grubbs as grubbs
+from matplotlib.backends.backend_pdf import PdfPages
+from statsmodels.robust.scale import mad
+import theano
+import theano.tensor as T
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+\end{verbatim}
+Заведем константы для моделирования: количество наблюдейний, процент аномальных наблюдений, и параметры регрессии, использующиеся в моделировании:
+\begin{verbatim}
+SAMPLE_QUINTITY=100
+OUTLIER_PERCENTAGE = 10.0
+regressionParameters = np.matrix([100,4]).T
+\end{verbatim}
+Проинициализируем результирующий вектор y:
+\begin{verbatim}
+y_points = np.zeros(shape = SAMPLE_QUINTITY)
+\end{verbatim}
+Теперь моделируем y:
+\begin{verbatim}
+x_points = np.zeros(shape=[SAMPLE_QUINTITY,len(regressionParameters)])
+y_points = np.zeros(shape = SAMPLE_QUINTITY)
+# plt.plot(x_points,y_points,'ro')
+# # plt.hist(y_points,bins="auto")
+# plt.show()
+for i in range(0,SAMPLE_QUINTITY):
+    if random()>OUTLIER_PERCENTAGE/100:
+        x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
+        # print(x_points[i])
+        y_points[i]=(x_points[i]*regressionParameters)+np.random.normal(0,4)
+    else:
+        x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
+        y_points[i]=np.random.normal(100,10, size=1)
+plt.plot(x_points.T[1],y_points,'ro')
+plt.show()
+\end{verbatim}
+Программа выводит такой график:
+
+\newpage
+\tableofcontents
+\end{document}

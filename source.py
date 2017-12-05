@@ -14,8 +14,8 @@ import statsmodels.formula.api as smf
 SAMPLE_QUINTITY=100
 OUTLIER_PERCENTAGE = 10.0
 regressionParameters = np.matrix([100,4]).T #надо брать свободный член больше
-x_points = np.zeros(shape=[SAMPLE_QUINTITY,len(regressionParameters)])
 
+x_points = np.zeros(shape=[SAMPLE_QUINTITY,len(regressionParameters)])
 y_points = np.zeros(shape = SAMPLE_QUINTITY)
 # plt.plot(x_points,y_points,'ro')
 # # plt.hist(y_points,bins="auto")
@@ -28,10 +28,7 @@ for i in range(0,SAMPLE_QUINTITY):
     else:
         x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
         y_points[i]=np.random.normal(100,10, size=1)
-    # y_points[i]=(x_points[i]*regressionParameters)
-# print(y_points.T)
 plt.plot(x_points.T[1],y_points,'ro')
-# plt.hist(y_points,bins="auto")
 plt.show()
 
 
@@ -50,6 +47,7 @@ rec_results = rec_model.fit()
 print(ols_results.params)
 print(rlm_results.params)
 print(rec_results.params)
-#OLS and recursiveLS have the same results
 
+#OLS and recursiveLS have the same results
 print(rlm_results.summary())
+
