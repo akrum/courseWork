@@ -5,7 +5,6 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{graphicx}
-
 \newtheorem{theorem}{Теорема}
 \newenvironment{rowequmat}[1]{\left(\array{@{}#1@{}}}{\endarray\right)}
 \textheight=24cm
@@ -13,32 +12,59 @@
 \oddsidemargin=0pt
 \topmargin=-1.5cm
 \parindent=24pt
-\title{Лабораторная работа 2}
+\title{Курсовой проект}
 \author{\copyright Андрей Румянцев}
 \date{29 ноября 2016}
 \begin{document}
 \begin{titlepage}
-	\thispagestyle{empty}
+    \linespread{1.1}
     \begin{center}
-        {\large БЕЛОРУССКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ \break}
-		{\\ \LARGE Курсовой проект \vspace{2in}}
-		{\\ \large Тема:"\textbf{Робастные оценки параметров регрессии при наличии группированной выборки}" \break}
-		{\newline \textsc{Андрей Румянцев, 7 группа}}
-	\end{center}
-	
-	\vfill
-		{\raggedleft Научный руководитель\\}
-		{\hfill  Агеева Е.~С.}\break
-		\center Минск, 2017
-\end{titlepage}
-
+    \fontsize{15pt}{15pt}\selectfont
+    МИНЕСТЕРСТВО ОБРАЗОВАНИЯ РЕСПУБЛИКИ БЕЛАРУСЬ\\
+    \vspace{0.5cm}
+    БЕЛОРУССКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ\\
+    \vspace{0.5cm}
+    \textit{ФАКУЛЬТЕТ ПРИКЛАДНОЙ МАТЕМАТИКИ И ИНФОРМАТИКИ}\\
+    \vspace{0.5cm}
+    \textit{КАФЕДРА МАТЕМАТИЧЕСКОГО МОДЕЛИРОВАНИЯ И АНАЛИЗА ДАННЫХ}\\
+    \vspace{3.5cm}
+    \fontsize{18pt}{18pt}\selectfont
+    Румянцев\\
+    Андрей Кириллович\\
+    \vspace{0.5cm}
+    \textbf{"Робастные оценки параметров регрессии при наличии группированой выборки"}\\
+    \vspace{0.5cm}
+    \fontsize{16pt}{16pt}\selectfont
+    Курсовой проект\\
+    \end{center}
+    \vspace{3.5cm}
+    \fontsize{14pt}{14pt}\selectfont
+    \hspace{-0.25cm}
+    \def\arraystretch{1.2}
+    \begin{tabular}{l@{\hspace{3.25cm}}l}
+    Допущен к защите & Научный руководитель:\\
+    <<\underline{~~~~}>>~~\underline{~~~~~~~~~~~~} 2017 г&Агеева Елена Сергеевна\\
+    
+    Ассистент кафедры математического \\
+    моделирования и анализа данных ФПМИ,  \\
+    кандидат физико-математических наук,\\
+    Агеева Елена Сергеевна
+    
+    \end{tabular}
+    \vspace{3cm}
+    \begin{center}
+    \fontsize{16pt}{16pt}\selectfont
+    Минск, 2017
+    \end{center}
+  \end{titlepage}
 \newpage
-
+\tableofcontents
+\newpage
 \section{Введение}
 Существует несколько подходов для оценки параметров регрессии, но далеко не все устойчивы к возникновениям аномальных наблюдений.
 В реальной жизни аномальные наблюдения возникают постоянно, поэтому большинство методов просто неприменимо.
 В прошлом веке в работах Хьюбера была заложена теория робастного оценивания.\hfill\break
-Были предложены следующие робастные оценки:\hfill\break
+Были предложены следующие робастные оценки\cite{Huber}:\hfill\break
 \begin{itemize}
     \item М-Оценки\\
     \item R-Оценки\\
@@ -106,7 +132,14 @@ plt.plot(x_points.T[1],y_points,'ro')
 plt.show()
 \end{verbatim}
 Программа выводит такой график:
-
 \newpage
-\tableofcontents
+\begin{thebibliography}{9}
+    \bibitem{Huber}
+    Хьюбер Дж П.,
+    \textit{Робастность в статистике:пер. с англ.}.
+    М.:Мир,1984-304с
+
+    \bibitem{Knuth}
+
+\end{thebibliography}
 \end{document}
