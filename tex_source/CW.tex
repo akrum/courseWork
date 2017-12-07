@@ -93,7 +93,7 @@
 \end{equation}
 Где $y_i$ -- i-е наблюдение из N наблюдений, $x_i$ регрессоры, \{$\beta_k, k=\overline{0,n}$\}-- параметры регрессии, а $\epsilon_i$ -- случайная ошибка i-го эксперемента, распределение которой подчиняется нормальному закону с нулевым ожиданием и дисперсией $\sigma^2$.\hfill\break
 В нашей задаче считаем параметры \{$\beta_k, k=\overline{0,n}$\} неизвестными, их нам и требуется найти.\hfill\break
-Но мы будем рассматривать не линейную регрессию, заданную формулами (1-2), а регрессию вида:
+Но мы будем рассматривать не линейную регрессию, заданную формулами (1-2), а линейную регрессию с аномальными наблюдениями вида:
 \begin{equation}
     y_i^{\epsilon}=(1-\xi_i)*y_i+ (\xi_i)*\eta_i,
 \end{equation}
@@ -104,7 +104,7 @@
         p(\xi_i=1)=1-\epsilon
     \end{cases},
 \end{equation}
-которая называется функцией линейной регрессии с выбросами$\eta_i$-случайная величина из какого-то другого неизвестного нам распределения.\hfill\break
+которая называется функцией линейной регрессии с выбросами. $\eta_i$-случайная величина из какого-то другого неизвестного нам распределения.\hfill\break
 Для удобства далее обозначим, что $y_i=y_i^{\epsilon}$\hfill\break
 Теперь рассмотрим некоторые методы оценки параметров регрессии:
 \subsection{Метод Наименьших Квадратов}
@@ -125,62 +125,116 @@
 \begin{eqnarray}
     \hat{\theta}=arg \min_{\theta}R^2(\theta)
 \end{eqnarray}
-По формулам (4-6) никак не пригоден для модели регрессии с засорениями, в чем мы далее и убедимся.
+По формулам (5-7) видно, что метод никак не пригоден для модели регрессии с засорениями, в чем мы далее и убедимся.
+
+\subsection{L-оценки}
+Существует способ построения устойчивых оценок, при котором для описания искажений в выборке используются распределения с ''хвостами'' более тяжелыми, чем у гипотетического распределения.
+Например, используется распределение Лапласа, для которого МП-оценкой параметра ''сдвига'' является выборочная медиала, принадлежащая к классу L-оценок:
+\begin{eqnarray}
+    \hat{\theta}^L(x)=\sum_{t=1}^n a_tg(x_{(t)}),
+\end{eqnarray}
+где $x_{(1)}\leq x_{(2)} \leq \dots \leq x_{(n)}$ - вариационный ряд выборки; $g(.)$-некоторая функция, ${a_1}_{t=1}^n$- весовые коэффициенты.\hfill\break
+Чаще всего используется частный случай (10):
+\begin{eqnarray}
+    \hat{\theta}^L(x)=\frac{1}{n-2q}\sum_{t=q+1}^{n-q}x_{(t)},
+\end{eqnarray}
+где q - наибольшее цело, не превосходящее $\alpha \bullet n (0\leq \alpha \leq \frac{1}{2})$.
+При определенном выборе $\alpha$ можем получить арифметическое среднее или выборочную медиану.
+
 \subsection{М-оценки}
 Швейцарский статистик П.Хьюбер преложил использовать М-оценки\cite{Kharin}, которые являются решениями экстремальных задач вида:
 \begin{eqnarray}
     \sum_{i=1}^{n}\phi(x_t;\theta)\rightarrow \min_{\theta\in \theta^{*}},
 \end{eqnarray}
 где $\theta^{*}$-замыкание $\theta$, $\phi(\dot;\theta)$-некоторая функция, определяющая конкретный тип оценок и их точность.\hfill\break
-Очевидно, что $\phi(\dot;\theta)\equiv - \ln{p(\dot;\theta)}$-обычная оценка макимального правдоподобия, построенная по модели без выбросов (1).
-\subsection{L-оценки}
-
-
-\section{Моделирование регрессии на языке Python}
-Подключим необходимые библиотеки:\hfill\break
-\begin{verbatim}
-import numpy as np
-import matplotlib.pyplot as plt
-from random import random
-import pylab
-import scipy
-from outliers import smirnov_grubbs as grubbs
-from matplotlib.backends.backend_pdf import PdfPages
-from statsmodels.robust.scale import mad
-import theano
-import theano.tensor as T
-import statsmodels.api as sm
-import statsmodels.formula.api as smf
-\end{verbatim}
-Заведем константы для моделирования: количество наблюдейний, процент аномальных наблюдений, и параметры регрессии, использующиеся в моделировании:
-\begin{verbatim}
-SAMPLE_QUINTITY=100
-OUTLIER_PERCENTAGE = 10.0
-regressionParameters = np.matrix([100,4]).T
-\end{verbatim}
-Проинициализируем результирующий вектор y:
-\begin{verbatim}
-y_points = np.zeros(shape = SAMPLE_QUINTITY)
-\end{verbatim}
-Теперь моделируем y:
-\begin{verbatim}
-x_points = np.zeros(shape=[SAMPLE_QUINTITY,len(regressionParameters)])
-y_points = np.zeros(shape = SAMPLE_QUINTITY)
-# plt.plot(x_points,y_points,'ro')
-# # plt.hist(y_points,bins="auto")
-# plt.show()
-for i in range(0,SAMPLE_QUINTITY):
-    if random()>OUTLIER_PERCENTAGE/100:
-        x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
-        # print(x_points[i])
-        y_points[i]=(x_points[i]*regressionParameters)+np.random.normal(0,4)
-    else:
-        x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
-        y_points[i]=np.random.normal(100,10, size=1)
-plt.plot(x_points.T[1],y_points,'ro')
-plt.show()
-\end{verbatim}
-Программа выводит такой график:
+Очевидно, что $\phi(\dot;\theta)\equiv - \ln{p(\dot;\theta)}$-обычная оценка макимального правдоподобия, построенная по модели без выбросов (1).\hfill\break
+Рассмотрим теперь некоторые способы выбора $\phi(\bullet;\theta)$.\hfill\break
+\subsubsection{способы выбора  $\phi(\bullet;\theta)$}
+Для начала определим:
+\begin{eqnarray}
+    e=y_i-(\beta_0+\beta_1 x_{i1}+\beta_2 x_{i2}+\dots+\beta_n x_{in})
+\end{eqnarray}
+Тогда существует такие методы\cite{RobustRegression}:\hfill\break
+\begin{tabular}{ |p{3cm}|p{10cm} | }
+    \hline
+    \multicolumn{2}{|c|}{способы выбора $\phi(\dot;\theta)$} \\
+    \hline
+    Метод& Целевая функция\\
+    \hline
+    Метод Наименьших Квадратов&$\phi(\bullet;\theta)_{OLS}=e^2$\\
+    Хьюбера&$\phi(\bullet;\theta)_{H}=
+        \begin{cases}
+            \frac{1}{2}e^2, |e|\leq k,\\
+            k|e|-\frac{1}{2}k^2, |e|>k
+        \end{cases}$\\
+    Биквадратный& $\phi(\bullet;\theta)_{H}=
+    \begin{cases}
+        \frac{k^2}{6}(1-[1-(\frac{e}{k})^2]^3), |e|\leq k\\
+        \frac{k^2}{6}, |e|>k
+    \end{cases}$\\
+    \hline
+\end{tabular}
+\section{Численные эксперименты над моделью линейной регрессии с засорениями}
+Для начала смоделируем функцию регрессии по методу (3). Для удобства моделируем регрессию с одним параметром x\hfill\break
+Воспользуемся такими параметрами:\hfill\break
+\begin{tabular}{|p{3cm}|p{10cm}|}
+    \hline
+    Переменная&значение\\
+    \hline
+    Размер выборки & 1000\\
+    Процент выбросов & 10\\
+    Параметры регрессии & $(100,4)$\\
+    $x_i$ & $\sim N(-5,25)$\\
+    $\epsilon_i$&$\sim N(0,16)$\\
+    $\eta_i$&$\sim N(100,100)$\\
+    \hline
+\end{tabular}\hfill\break
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=100mm]{program_output.png}
+    \caption{На скриншоте видны выводы приближенных оценок: МНК, М-оценки\label{overflow}}
+\end{figure}
+\newpage
+Получаем такие графики:\hfill\break
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=100mm]{histogram.png}
+    \caption{Гистограмма вектора Y\label{overflow}}
+\end{figure}
+\begin{figure}[hb!]
+    \centering
+    \includegraphics[width=100mm]{graphic.png}
+    \caption{Вывод вектора Y относительно вектора X\label{overflow}}
+\end{figure}
+\newpage
+\section{Поиск breakpoint у МНК и М-оценок}
+Для поиска того процента загрязнений, при котором увеличение количества элементов выборки не повышает точности метода будем делать так:\hfill\break
+\begin{itemize}
+    \item Организуем цикл по процентам загрязнений\\
+    \item На каждой итерации будем 20 раз моделировать выборку с 1000 и 3000 тысячами наблюдений.
+        \begin{itemize}
+            \item На каждой такой итерации суммируем невязку с точными значениями параметров для каждого количества элементов\\
+        \end{itemize}
+    \item после цикла делим на количество суммирования каждую из сумм невязок\\
+    \item если полученная усредненная невязка при 1000 наблюдений меньше либо равно невязке при 3000 наблюдений, то заканчиваем цикл - нашли breakpoint\\
+    \item иначе повышаем процент на 1 и повторяем цикл
+\end{itemize}
+Такие тесты проведем для МНК и М-оценок.\hfill\break
+Замечания:\hfill\break
+\begin{itemize}
+    \item Мы могли бы моделировать не 20 раз , а значительно больше, тем самым мы уменьшаем зависимость результата работы метода он моделируемой выборки.\\
+    \item Аналогично можно заключить и для размера выборок(отношение моделируемых количеств можно значительно увеличить)
+\end{itemize}
+\section{Результаты программы}
+\begin{tabular}{|p{3cm}|p{10cm}|}
+    \hline
+    Метод&breakpoint\\
+    \hline
+    МНК & 9\%\\
+    М-оценка с функцией Хьюбера& 18\%\\
+    \hline
+\end{tabular}\hfill\break
+Итак, видим, что М-оценки значительно устойчивее к выбросам чем МНК.\hfill\break 
 \newpage
 \begin{thebibliography}{9}
     \bibitem{Huber}
@@ -192,5 +246,9 @@ plt.show()
     Харин Ю.С., Зуев Н.М., Жук Е.Е,
     \textit{Теория вероятностей, математическая и прикладная статистика: учебник}
     Минск: БГУ, 2011.-463с
+    \bibitem{RobustRegression}
+    John Fox \& Sanford Weisberg,
+    \textit{Robust Regression},
+    October 8, 2013
 \end{thebibliography}
 \end{document}
