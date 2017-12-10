@@ -14,6 +14,7 @@
     urlcolor=black
 }
 \usepackage{graphicx}
+\usepackage{parskip}
 % \addbibresource{bibliography.bib}
 \newtheorem{theorem}{Теорема}
 \newenvironment{rowequmat}[1]{\left(\array{@{}#1@{}}}{\endarray\right)}
@@ -21,7 +22,7 @@
 \textwidth=16cm
 \oddsidemargin=0pt
 \topmargin=-1.5cm
-\parindent=24pt
+\parindent=5cm
 \title{Курсовой проект}
 \author{\copyright Андрей Румянцев}
 \date{29 ноября 2016}
@@ -79,11 +80,13 @@
 М-оценки -- некоторое подобие оценок максимального правдоподобия(ММП-оценки - частный случай), L-оценки строятся на основе линейных комбинаций порядковых статистик, R-оценки -- на основе ранговых статистик.
 В данном курсовом проекте я буду моделировать функцию регрессии с аномальными наблюдениями, анализировать точность методов и находить для разных методов так называемый ''breakdown point''--процент аномальных наблюдений, при котором увеличение количества наблюдений не повысит точность методов.
 
-
-\section{Теоретические сведения}
+\newpage
+\section{Модель функции регрессии с аномальными наблюдениями и оценки ее параметров}
 Введем линейную регрессию:\hfill\break
 \begin{eqnarray}
-    y_i=\beta_0+\beta_1 x_{i1}+\beta_2 x_{i2}+\dots+\beta_n x_{in}+\epsilon_i, i=\overline{1,N}
+    y_i=\beta_0+\beta_1 x_{i1}+\beta_2 x_{i2}+\dots+\beta_n x_{in}+\epsilon_i, i=\overline{1,N}\\
+    \nonumber y_i= f(x_i,\beta)+\epsilon_i,\\
+    \nonumber f(x_i,\beta)=\beta_0+\beta_1 x_{i1}+\beta_2 x_{i2}+\dots+\beta_n x_{in}
 \end{eqnarray}
 Или, в векторной форме:
 \begin{equation}
@@ -99,13 +102,13 @@
         x_{i1}\\
         \dots\\
         x_{in}
-    \end{pmatrix}^{T}+ \epsilon_i
+    \end{pmatrix}^{T}+ \epsilon_i,
 \end{equation}
-Где $y_i$ -- $i$-е наблюдение из N наблюдений, $x_i=(x_{i1},x_{i2},\dots,x_{in})$ регрессоры, \{$\beta_k, k=\overline{0,n}$\}-- параметры регрессии, а $\epsilon_i$ -- случайная ошибка $i$-го эксперемента, распределение которой подчиняется нормальному закону с нулевым ожиданием и дисперсией $\sigma^2$.\hfill\break
+где $y_i$ -- $i$-е наблюдение из $N$ наблюдений($N$-объем выборки), $x_i=(x_{i1},x_{i2},\dots,x_{in})$ регрессоры, \{$\beta_k, k=\overline{0,n}$\}-- параметры регрессии, а $\epsilon_i$ -- случайная ошибка $i$-го эксперемента, распределение которой подчиняется нормальному закону с нулевым ожиданием и дисперсией $\sigma^2$.\hfill\break
 В нашей задаче считаем параметры \{$\beta_k, k=\overline{0,n}$\} неизвестными, их нам и требуется найти.\hfill\break
 Но мы будем рассматривать не линейную регрессию, заданную формулами (1)-(2), а линейную регрессию с аномальными наблюдениями вида:
 \begin{equation}
-    y_i^{\epsilon}=(\xi_i)y_i+ (1-\xi_i)\eta_i,
+    y_i^{\widetilde{\epsilon}}=(\xi_i)y_i+ (1-\xi_i)\eta_i,
 \end{equation}
 где $\xi_i$ принимает значение, равное 1, с вероятностью $1-\widetilde{\epsilon}$ и значение, равное 0, с вероятностью $\widetilde{\epsilon}$, т.е.:
 \begin{equation}
@@ -114,7 +117,7 @@
         p(\xi_i=1)=1-\widetilde{\epsilon}
     \end{cases},
 \end{equation}
-которая называется функцией линейной регрессии с выбросами. $\eta_i$-случайная величина из какого-то другого неизвестного нам распределения. $\widetilde{\epsilon}$ будем называть процентом аномальных наблюдений.\hfill\break
+которая называется функцией линейной регрессии с выбросами. $\eta_i$-случайная величина из какого-то другого неизвестного нам распределения. Переменную $\widetilde{\epsilon}$ будем называть процентом аномальных наблюдений.\hfill\break
 Теперь рассмотрим некоторые методы оценки параметров регрессии:
 \subsection{Метод Наименьших Квадратов}
 Предлоположим, что случайные ошибки подчиняются нормальному закону распределения вероятностей:
@@ -123,125 +126,113 @@
 \end{equation}
 Строим логарифмическую функцию правдоподобия. В силу (1) и (2) имеем:
 \begin{equation}
-    L\{y_i^{\widetilde{\epsilon}}\}=N_1(f(x_i;\theta), \sigma^2)
+    L\{y_i\}=N_1(f(x_i;\beta), \sigma^2)
 \end{equation}
 Логарифмическая функция правдоподобия выглядит так\cite{Kharin}:
 \begin{eqnarray}
-    l(\theta)=\ln \prod_{i=1}^{n}(\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(y_i^{\widetilde{\epsilon}}-f(x_i;\theta))^2}{2\sigma^2}})=-\frac{1}{2}n\ln{2\pi\sigma^2}-\frac{1}{2\sigma^2}R^2(\theta),\\
-    R^2(\theta)=\sum_{i=1}^{n}(\delta y_i^{\widetilde{\epsilon}})^2=\sum_{i=1}^{n}(y_i^{\widetilde{\epsilon}}-f(x_i,\theta))^2\geq 0
+    l(\beta)=\ln \prod_{i=1}^{n}(\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(y_i-f(x_i;\beta))^2}{2\sigma^2}})=-\frac{1}{2}n\ln{2\pi\sigma^2}-\frac{1}{2\sigma^2}R^2(\beta),\\
+    R^2(\beta)=\sum_{i=1}^{n}(\delta y_i)^2=\sum_{i=1}^{n}(y_i-f(x_i,\beta))^2\geq 0
 \end{eqnarray}
 Тогда оценка макимального правдоподобия из формул (4)-(5) такова:
 \begin{eqnarray}
-    \hat{\theta}=arg \min_{\theta}R^2(\theta)
+    \hat{\beta}=arg \min_{\beta}R^2(\beta)
 \end{eqnarray}
-По формулам (5)-(7) видно, что метод никак не пригоден для модели регрессии с засорениями, в чем мы далее и убедимся.
-
-\subsection{L-оценки}
-Существует способ построения устойчивых оценок, при котором для описания искажений в выборке используются распределения с ''хвостами'' более тяжелыми, чем у гипотетического распределения.
-Например, используется распределение Лапласа, для которого МП-оценкой параметра ''сдвига'' является выборочная медиана, принадлежащая к классу L-оценок:
-\begin{eqnarray}
-    \hat{\theta}^L(x)=\sum_{t=1}^n a_tg(x_{(t)}),
-\end{eqnarray}
-где $x_{(1)}\leq x_{(2)} \leq \dots \leq x_{(n)}$ - вариационный ряд выборки; $g(.)$-некоторая функция, $\{a_t\}_{t=1}^n$- весовые коэффициенты.\hfill\break
-Чаще всего используется частный случай (10):
-\begin{eqnarray}
-    \hat{\theta}^L(x)=\frac{1}{n-2q}\sum_{t=q+1}^{n-q}x_{(t)},
-\end{eqnarray}
-где q - наибольшее целое, не превосходящее $\alpha \cdot n (0\leq \alpha \leq \frac{1}{2})$.
-При определенном выборе $\alpha$ можем получить арифметическое среднее или выборочную медиану.
 
 \subsection{М-оценки}
-Швейцарский статистик П.Хьюбер преложил использовать М-оценки\cite{Kharin}, которые являются решениями экстремальных задач вида:
+Швейцарский статистик П.Хьюбер преложил использовать М-оценки \cite{Kharin}, которые являются решениями экстремальных задач вида:
 \begin{eqnarray}
-    \sum_{i=1}^{n}\phi(x_t;\theta)\rightarrow \min_{\theta\in \theta^{*}},
+    \sum_{i=1}^{n}\phi(x_t;\beta)\rightarrow \min_{\beta},
 \end{eqnarray}
-где $\theta^{*}$-замыкание $\theta$, $\phi(\cdot;\theta)$-некоторая функция, определяющая конкретный тип оценок и их точность.\hfill\break
-Очевидно, что $\phi(\cdot;\theta)\equiv - \ln{p(\cdot;\theta)}$-обычная оценка максимального правдоподобия, построенная по модели без выбросов (1).\hfill\break
-Рассмотрим теперь некоторые способы выбора $\phi(\cdot;\theta)$.\hfill\break
-\subsubsection{способы выбора  функции для решения экстремальной задачи в M-оценках}
+где $\phi(\cdot;\beta)$-некоторая функция, определяющая конкретный тип оценок и их точность.\hfill\break
+Очевидно, что $\phi(\cdot;\beta)\equiv - \ln{p(\cdot;\beta)}$-обычная оценка максимального правдоподобия, построенная по модели без выбросов (1).\hfill\break
+Рассмотрим теперь некоторые способы выбора $\phi(\cdot;\beta)$.\hfill\break
+\subsubsection{Способы выбора  функции для решения экстремальной задачи в M-оценках}
 Для начала определим:
 \begin{eqnarray}
-    e_i=y_i^{\widetilde{\epsilon}}-(\beta_0+\beta_1 x_{i1}+\beta_2 x_{i2}+\dots+\beta_n x_{in})
+    u_i=y_i^{\widetilde{\epsilon}}-(\beta_0+\beta_1 x_{i1}+\beta_2 x_{i2}+\dots+\beta_n x_{in})
 \end{eqnarray}
 Тогда существует такие методы\cite{RobustRegression}:\hfill\break
 \begin{center}
 \begin{tabular}{ |p{3cm}|p{10cm} | }
     \hline
-    \multicolumn{2}{|c|}{способы выбора $\phi(\cdot;\theta)$} \\
+    \multicolumn{2}{|c|}{Способы выбора $\phi(\cdot;\beta)$} \\
     \hline
     Метод& Целевая функция\\
     \hline
-    Метод Наименьших Квадратов&$\phi(\cdot;\theta)_{OLS}=e^2$\\
-    Хьюбера&$\phi(\cdot;\theta)_{H}=
+    Метод Наименьших Квадратов&$\phi(\cdot;\beta)_{OLS}=u^2$\\
+    Хьюбера&$\phi(\cdot;\beta)_{H}=
         \begin{cases}
-            \frac{1}{2}e^2, |e|\leq k,\\
-            k|e|-\frac{1}{2}k^2, |e|>k
+            \frac{1}{2}u^2, |u|\leq k,\\
+            k|u|-\frac{1}{2}k^2, |u|>k
         \end{cases}$\\
-    Биквадратный& $\phi(\cdot;\theta)_{B}=
+    Биквадратный& $\phi(\cdot;\beta)_{B}=
     \begin{cases}
-        \frac{k^2}{6}(1-[1-(\frac{e}{k})^2]^3), |e|\leq k\\
-        \frac{k^2}{6}, |e|>k
+        \frac{k^2}{6}(1-[1-(\frac{u}{k})^2]^3), |u|\leq k\\
+        \frac{k^2}{6}, |u|>k
     \end{cases}$\\
     \hline
 \end{tabular}
 \end{center}
-\section{моделирование функции регрессии с аномальными наблюдениями}
-Для начала смоделируем функцию регрессии по методу (3). Для удобства моделируем регрессию с одним параметром x\hfill\break
+\newpage
+\section{Моделирование функции регрессии с аномальными наблюдениями}
+Для начала смоделируем функцию регрессии по методу (3). Для удобства моделируем регрессию с одномерными регрессорами $x_i, i=\overline{1,N}$.\hfill\break
 Воспользуемся такими параметрами:\hfill\break
 \begin{center}
 \begin{tabular}{|p{5cm}|p{5cm}|}
     \hline
     Переменная&значение\\
     \hline
-    Размер выборки & 1000\\
+    Размер выборки $N$& 1000\\
     \hline
-    Процент выбросов & 10\\
+    Процент выбросов $\widetilde{\epsilon}$& 10\\
     \hline
-    Параметры регрессии & $(100,4)$\\
+    Параметры регрессии $\beta$& $(100,4)$\\
     \hline
-    $x_i$ & $\sim N(-5,25)$\\
+    регрессоры $x_i$ & $\sim U(-5,5)$\\
     \hline
     $\epsilon_i$&$\sim N(0,16)$\\
     \hline
     $\eta_i$&$\sim N(100,100)$\\
     \hline
-\end{tabular}
+\end{tabular},
 \end{center}
+$U(-5,5)$ - равномерное распределение на отрезке $[-5,5]$.\hfill\break
 Получаем такой график:\hfill\break
 \begin{figure}[ht!]
     \centering
     \includegraphics[width=100mm]{graphic.png}
     \caption{Вывод графика рассеяния (Y,X)\label{overflow}}
 \end{figure}
+\newpage
 \section{Поиск breakdown point у МНК и М-оценок}
+Будем пользоваться той же моделью, как и в пункте 3.
 Для поиска того процента загрязнений, при котором увеличение количества элементов выборки не повышает точности метода будем делать так:\hfill\break
 \begin{itemize}
-    \item Организуем цикл по процентам загрязнений $\widetilde{\epsilon}$\\
+    \item Организуем цикл по процентам загрязнений $\widetilde{\epsilon}_i$ от $\widetilde{\epsilon}_0=0$ до $\widetilde{\epsilon}_{100}=100$, увеличивая каждый раз $\widetilde{\epsilon}_i$ на 1\\
     \item На каждой итерации будем 20 раз моделировать выборку с $N_1=1000$ и $N_2=3000$ наблюдений.
         \begin{itemize}
             \item На каждой такой итерации суммируем невязку с точными значениями параметров для каждого количества элементов:
+            \begin{eqnarray*}
+                \delta_1^{\widetilde{\epsilon}_i}= \sum_{k=1}^{20}(\sum_{i=0}^{n}(\beta_i-\hat{\beta_{N_1ki}})^2)^{\frac{1}{2}}\\
+                \delta_2^{\widetilde{\epsilon}_i}= \sum_{k=1}^{20}(\sum_{i=0}^{n}(\beta_i-\hat{\beta_{N_2ki}})^2)^{\frac{1}{2}}
+            \end{eqnarray*}
         \end{itemize}
     \item после цикла делим на количество суммирования каждую из сумм невязок, т.е. вычисляем такие значения:
             \begin{eqnarray}
-                \widetilde{e_1^{\widetilde{\epsilon}_i}}= \frac{1}{20}\sum_{k=1}^{20}(\sum_{i=0}^{n}(\beta_i-\hat{\beta_{N_1ki}})^2)^{\frac{1}{2}}\\
-                \widetilde{e_2^{\widetilde{\epsilon}_i}}= \frac{1}{20}\sum_{k=1}^{20}(\sum_{i=0}^{n}(\beta_i-\hat{\beta_{N_2ki}})^2)^{\frac{1}{2}}
+                \widetilde{\delta_1^{\widetilde{\epsilon}_i}}= \frac{1}{20}\sum_{k=1}^{20}(\sum_{i=0}^{n}(\beta_i-\hat{\beta_{N_1ki}})^2)^{\frac{1}{2}}\\
+                \widetilde{\delta_2^{\widetilde{\epsilon}_i}}= \frac{1}{20}\sum_{k=1}^{20}(\sum_{i=0}^{n}(\beta_i-\hat{\beta_{N_2ki}})^2)^{\frac{1}{2}}
             \end{eqnarray}\\
     \item если полученная усредненная невязка при 1000 наблюдений меньше либо равна невязке при 3000 наблюдений, то заканчиваем цикл - нашли breakdown point, т.е.:
             \begin{eqnarray}
-                br_p=
+                br=
                 \begin{cases}
-                    \widetilde{\epsilon_i}, if~ \widetilde{e_1^{\widetilde{\epsilon}_i}}<\widetilde{e_2^{\widetilde{\epsilon}_i}}
+                    \widetilde{\epsilon_i}, if~ \widetilde{\delta_1^{\widetilde{\epsilon}_i}}<\widetilde{\delta_2^{\widetilde{\epsilon}_i}}
                 \end{cases}
             \end{eqnarray}\\
     \item иначе повышаем процент на 1 и повторяем цикл: ~$\widetilde{\epsilon_{i+1}}=\widetilde{\epsilon_{i}}+1$
 \end{itemize}
 Такие тесты проведем для МНК и М-оценок.\hfill\break
-Замечания:\hfill\break
-\begin{itemize}
-    \item Мы могли бы моделировать не 20 раз , а значительно больше, тем самым мы уменьшаем зависимость результата работы метода он моделируемой выборки.\\
-    \item Аналогично можно заключить и для размера выборок(отношение моделируемых количеств можно значительно увеличить)
-\end{itemize}
-\section{Результаты программы}
+\subsection{Результаты программы}
 \begin{center}
 \begin{tabular}{|p{8cm}|p{3cm}|}
     \hline
@@ -252,22 +243,18 @@
     \hline
 \end{tabular}
 \end{center}
-Итак, видим, что М-оценки  значительно устойчивее к выбросам чем МНК.\hfill\break 
-\newpage
-Консольный вывод программы, где показываются усредненные невязки для разных методов при $N_1=1000$ и $N_2=3000$ наблюдений соответственно:
-\begin{figure}[ht!]
-    \centering
-    \includegraphics[width=100mm]{RLMDisperancies.png}
-    \caption{Невязки М-оценок с функцией Хьюбера\label{overflow}}
-\end{figure}
-\begin{figure}[ht!]
-    \centering
-    \includegraphics[width=100mm]{OLSDisperancies.png}
-    \caption{Невязки МНК\label{overflow}}
-\end{figure}
+Итак, видим, что М-оценки  значительно устойчивее к выбросам чем МНК. По консольному выводу можно заметить, как растет невязка у обоих методов и при этом уменьшается расхождение невязок при увеличении объема выборки, когда процент аномальных наблюдений растет.\hfill\break 
+\textbf{Замечания}:
+\begin{itemize}
+    \item Мы могли бы моделировать не 20 раз , а значительно больше, тем самым мы уменьшаем зависимость результата работы метода он моделируемой выборки.\\
+    \item Аналогично можно заключить и для размера выборок(отношение моделируемых количеств можно значительно увеличить)
+\end{itemize}
 \newpage
 \section{Заключение}
-По консольному выводу можно заметить, как растет невязка у обоих методов и при этом уменьшается расхождение невязок при увеличении объема выборки, когда процент аномальных наблюдений растет.
+Была рассмотрена модель функции регрессии с аномальными наблюдениями. Были построены МНК оценки и М-оценки,
+а также была оценена их устройчивость при разных количествах выбросов. \hfill\break
+Численные эксперименты показали, что МНК оценки значительно хуже применимы к аномальным наблюдениям 
+по сравнению с М-оценками.
 \newpage
 % \section{Список литературы}
 % \printbibliography
@@ -291,5 +278,12 @@
     А.В. Омельченко,
     \textit{Робастное оценивание параметров полиномиальной регрессии второго порядка,}
     Харьковский национальный университет радиоэлектроники, Украина, 2009
+
+    \bibitem{ComparisonRobust}
+    \"{O}zlem G\"{u}r\"{u}nl\"{u} Alma,
+    \textit{Comparison of Robust Regression Methods
+    in Linear Regression},
+    Int. J. Contemp. Math. Sciences, Vol. 6, 2011, no. 9, 409 - 421
 \end{thebibliography}
+\addcontentsline{toc}{section}{Список Литературы}
 \end{document}
