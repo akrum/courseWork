@@ -15,6 +15,7 @@ SAMPLE_QUINTITY=1000
 OUTLIER_PERCENTAGE = 10.0
 regressionParameters = np.matrix([100,4]).T 
 
+
 x_points = np.zeros(shape=[SAMPLE_QUINTITY,len(regressionParameters)])
 y_points = np.zeros(shape = SAMPLE_QUINTITY)
 # plt.plot(x_points,y_points,'ro')
@@ -28,10 +29,10 @@ for i in range(0,SAMPLE_QUINTITY):
     else:
         x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
         y_points[i]=np.random.normal(100,10, size=1)
-plt.hist(y_points, bins="auto")
-plt.show()
-plt.plot(x_points.T[1],y_points,'ro')
-plt.show()
+# plt.hist(y_points, bins="auto")
+# plt.show()
+# plt.plot(x_points.T[1],y_points,'ro')
+# plt.show()
 
 
 # modelspec = ('cost ~ np.log(units) + np.log(units):item + item') #where item is a categorical variable
