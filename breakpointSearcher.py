@@ -14,6 +14,9 @@ import statsmodels.formula.api as smf
 accurate_result=np.matrix([100,4]).T
 N_MonteCarlo = 20
 epsilon = 0.01
+deltasHundred = np.zeros(1)
+deltasThousand = np.zeros(1)
+epsilons=np.zeros(1)
 def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
     regressionParameters = accurate_result 
     x_points = np.zeros(shape=[regressionSampleQuintity,len(regressionParameters)])
@@ -37,21 +40,28 @@ while cycleOulierPercentage<100:
     discrepancyThousand=0.0
     for i in range(1,int(N_MonteCarlo+1)):
         x_points,y_points=modulateRegression(1000,cycleOulierPercentage)
-        APPROXIMATION_MODEL=sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
+        APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
         tempHundredParams=APPROXIMATION_MODEL.fit().params
         discrepancyHundred += np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempHundredParams)))
         # print("temp norm:{0:f}\n".format(np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempHundredParams)))))
         x_points,y_points=modulateRegression(3000,cycleOulierPercentage)
-        APPROXIMATION_MODEL = sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
+        APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
         tempThousandParams = APPROXIMATION_MODEL.fit().params
         discrepancyThousand += np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempThousandParams)))
         # plt.plot(x_points.T[1],y_points,'ro')
         # plt.show()
     discrepancyHundred/=N_MonteCarlo
     discrepancyThousand/=N_MonteCarlo
+    deltasHundred = np.append(deltasHundred, discrepancyHundred)
+    deltasThousand =  np.append(deltasThousand, discrepancyThousand)
+    epsilons = np.append(epsilons,cycleOulierPercentage)
     print("Disperancies: {0:f}, {1:f}".format(discrepancyHundred,discrepancyThousand))
     if discrepancyHundred<=discrepancyThousand:
         print("Breakpoint for this approximation model is:{0:f}%".format(cycleOulierPercentage))
+        plt.plot(epsilons,deltasHundred,'r', epsilons,deltasThousand,'b')
+        plt.show()
         break
+    # plt.plot(epsilons,deltasHundred,'ro')
+    # plt.show()
     cycleOulierPercentage +=1.0
 
