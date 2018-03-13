@@ -10,9 +10,10 @@ import theano
 import theano.tensor as T
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from multiprocessing import Process, Queue , Pipe
 #breakpoint search
 accurate_result=np.matrix([100,4]).T
-N_MonteCarlo = 20
+N_MonteCarlo = 30
 epsilon = 0.01
 deltasHundred = np.zeros(1)
 deltasThousand = np.zeros(1)
@@ -34,19 +35,37 @@ def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
             y_points[i]=np.random.normal(100,10, size=1)
     return (x_points,y_points)
 cycleOulierPercentage = 1.0
+def rlmForHundred(conn, cycleOulierPercentage):
+    x_points,y_points=modulateRegression(1000,cycleOulierPercentage)
+    APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
+    tempHundredParams=APPROXIMATION_MODEL.fit().params
+    conn.send(tempHundredParams)
+def rlmForThousand(conn, cycleOulierPercentage):
+    x_points,y_points=modulateRegression(3000,cycleOulierPercentage)
+    APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
+    tempThousandParams = APPROXIMATION_MODEL.fit().params
+    conn.send(tempThousandParams)
 while cycleOulierPercentage<100:
     print("Going to perform test with percentage {0:f}%....".format(cycleOulierPercentage))
     discrepancyHundred=0.0
     discrepancyThousand=0.0
     for i in range(1,int(N_MonteCarlo+1)):
-        x_points,y_points=modulateRegression(1000,cycleOulierPercentage)
-        APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
-        tempHundredParams=APPROXIMATION_MODEL.fit().params
+        parent_conn_hundred, child_conn_hundred = Pipe()
+        parent_conn_thousand, child_conn_thousand = Pipe()
+        pHundred = Process(target=rlmForHundred, args=(child_conn_hundred, cycleOulierPercentage))
+        pThousand = Process(target=rlmForThousand, args=(child_conn_thousand,cycleOulierPercentage))
+        pHundred.start()
+        pThousand.start()
+        # x_points,y_points=modulateRegression(1000,cycleOulierPercentage)
+        # APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
+        tempHundredParams= parent_conn_hundred.recv()
+        tempThousandParams = parent_conn_thousand.recv()
+        pHundred.join()
+        pThousand.join()
         discrepancyHundred += np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempHundredParams)))
-        # print("temp norm:{0:f}\n".format(np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempHundredParams)))))
-        x_points,y_points=modulateRegression(3000,cycleOulierPercentage)
-        APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
-        tempThousandParams = APPROXIMATION_MODEL.fit().params
+        # x_points,y_points=modulateRegression(3000,cycleOulierPercentage)
+        # APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
+        # tempThousandParams = APPROXIMATION_MODEL.fit().params
         discrepancyThousand += np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempThousandParams)))
         # plt.plot(x_points.T[1],y_points,'ro')
         # plt.show()
