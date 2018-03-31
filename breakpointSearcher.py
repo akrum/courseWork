@@ -16,8 +16,8 @@ from multiprocessing import Process, Queue , Pipe
 accurate_result=np.matrix([100,4]).T
 N_MonteCarlo = 20
 epsilon = 0.01
-N_HUNDRED = 1000
-N_THOUSAND = 3000
+N_HUNDRED = 2000
+N_THOUSAND = 6000
 deltasHundred = np.zeros(1)
 deltasThousand = np.zeros(1)
 epsilons=np.zeros(1)
@@ -25,13 +25,9 @@ def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
     regressionParameters = accurate_result 
     x_points = np.zeros(shape=[regressionSampleQuintity,len(regressionParameters)])
     y_points = np.zeros(shape = regressionSampleQuintity)
-    # plt.plot(x_points,y_points,'ro')
-    # # plt.hist(y_points,bins="auto")
-    # plt.show()
     for i in range(0,regressionSampleQuintity):
         if random()>regressionOutlierPercentage/100:
             x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
-            # print(x_points[i])
             y_points[i]=(x_points[i]*regressionParameters)+np.random.normal(0,4)
         else:
             x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
@@ -51,10 +47,6 @@ def rlmForThousand(conn, cycleOulierPercentage, hundredAndThousandConn_recv):
     temp_x_points,temp_y_points=modulateRegression(N_THOUSAND-N_HUNDRED,cycleOulierPercentage)
     x_points=np.concatenate((x_points, temp_x_points))
     y_points = np.append(y_points, temp_y_points)
-    # print x_points
-    # plt.plot(x_points,y_points,'ro')
-    # plt.show()
-    # x_points,y_points=modulateRegression(N_THOUSAND,cycleOulierPercentage)
     APPROXIMATION_MODEL = sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
     tempThousandParams = APPROXIMATION_MODEL.fit().params
     conn.send(tempThousandParams)
@@ -70,19 +62,10 @@ while cycleOulierPercentage<=100:
         pThousand = Process(target=rlmForThousand, args=(child_conn_thousand,cycleOulierPercentage, hundredAndThousandConn_recv))
         pHundred.start()
         pThousand.start()
-        # x_points,y_points=modulateRegression(1000,cycleOulierPercentage)
-        # APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
         tempHundredParams= parent_conn_hundred.recv()
         tempThousandParams = parent_conn_thousand.recv()
         discrepancyHundred += np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempHundredParams)))
-        # x_points,y_points=modulateRegression(3000,cycleOulierPercentage)
-        # APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
-        # tempThousandParams = APPROXIMATION_MODEL.fit().params
         discrepancyThousand += np.linalg.norm(np.squeeze(np.asarray(accurate_result.T-tempThousandParams)))
-        # pHundred.join()
-        # pThousand.join()
-        # plt.plot(x_points.T[1],y_points,'ro')
-        # plt.show()
         pHundred.terminate()
         pThousand.terminate()
     discrepancyHundred/=N_MonteCarlo
@@ -93,14 +76,10 @@ while cycleOulierPercentage<=100:
     print("Disperancies: {0:f}, {1:f}".format(discrepancyHundred,discrepancyThousand))
     if (discrepancyHundred-discrepancyThousand<=5e-6)|(cycleOulierPercentage>=100):
         print("Breakpoint for this approximation model is:{0:f}%".format(cycleOulierPercentage))
-        # red_patch = mpatches.Patch(color='red', label='{0:d}'.format(N_HUNDRED))
-        red_patch = mpatches.Patch(color='red', label='1')
-        blue_patch = mpatches.Patch(color='blue', label='{0:d}'.format(N_THOUSAND))
-        info_patch = mpatches.Patch(color="black", label="MC:{0:f},res:{1:f}".format(N_MonteCarlo, cycleOulierPercentage))
-        plt.plot(epsilons,deltasHundred,'r', epsilons,deltasThousand,'b', label="...")
-        plt.legend([red_patch, blue_patch, info_patch])
+        lines = plt.plot(epsilons,deltasHundred,'r', epsilons,deltasThousand,'b', label="...")
+        plt.legend(lines, ['{0:d}'.format(N_HUNDRED),'{0:d}'.format(N_THOUSAND), "blabla"], loc="lower right")
+        plt.title("Plot with nMC:{0:f}, and resulting breakpoint:{1:f}".format(N_MonteCarlo, cycleOulierPercentage))
+        ax = plt.gca()
         plt.show()
         break
-    # plt.plot(epsilons,deltasHundred,'ro')
-    # plt.show()
     cycleOulierPercentage +=1.0
