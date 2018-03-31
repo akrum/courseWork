@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from random import random
 import pylab
 import scipy
@@ -15,6 +16,8 @@ from multiprocessing import Process, Queue , Pipe
 accurate_result=np.matrix([100,4]).T
 N_MonteCarlo = 20
 epsilon = 0.01
+N_HUNDRED = 1000
+N_THOUSAND = 3000
 deltasHundred = np.zeros(1)
 deltasThousand = np.zeros(1)
 epsilons=np.zeros(1)
@@ -36,25 +39,26 @@ def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
     return (x_points,y_points)
 cycleOulierPercentage = 1.0
 def rlmForHundred(conn, cycleOulierPercentage, hundredAndThousandConn_send):
-    x_points,y_points=modulateRegression(1000,cycleOulierPercentage)
-    # hundredAndThousandConn_send.send(x_points)
-    # hundredAndThousandConn_send.send(y_points)
-    APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
+    x_points,y_points=modulateRegression(N_HUNDRED,cycleOulierPercentage)
+    hundredAndThousandConn_send.send(x_points)
+    hundredAndThousandConn_send.send(y_points)
+    APPROXIMATION_MODEL=sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
     tempHundredParams=APPROXIMATION_MODEL.fit().params
     conn.send(tempHundredParams)
 def rlmForThousand(conn, cycleOulierPercentage, hundredAndThousandConn_recv):
-    # x_points = hundredAndThousandConn_recv.recv()
-    # y_points = hundredAndThousandConn_recv.recv()
-    # temp_x_points,temp_y_points=modulateRegression(2000,cycleOulierPercentage)
-    # x_points = np.append(x_points, temp_x_points)
-    # y_points = np.append(y_points, temp_y_points)
+    x_points = hundredAndThousandConn_recv.recv()
+    y_points = hundredAndThousandConn_recv.recv()
+    temp_x_points,temp_y_points=modulateRegression(N_THOUSAND-N_HUNDRED,cycleOulierPercentage)
+    x_points=np.concatenate((x_points, temp_x_points))
+    y_points = np.append(y_points, temp_y_points)
+    # print x_points
     # plt.plot(x_points,y_points,'ro')
     # plt.show()
-    x_points,y_points=modulateRegression(2000,cycleOulierPercentage)
-    APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
+    # x_points,y_points=modulateRegression(N_THOUSAND,cycleOulierPercentage)
+    APPROXIMATION_MODEL = sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
     tempThousandParams = APPROXIMATION_MODEL.fit().params
     conn.send(tempThousandParams)
-while cycleOulierPercentage<100:
+while cycleOulierPercentage<=100:
     print("Going to perform test with percentage {0:f}%....".format(cycleOulierPercentage))
     discrepancyHundred=0.0
     discrepancyThousand=0.0
@@ -87,12 +91,16 @@ while cycleOulierPercentage<100:
     deltasThousand =  np.append(deltasThousand, discrepancyThousand)
     epsilons = np.append(epsilons,cycleOulierPercentage)
     print("Disperancies: {0:f}, {1:f}".format(discrepancyHundred,discrepancyThousand))
-    if discrepancyHundred<=discrepancyThousand:
+    if (discrepancyHundred-discrepancyThousand<=5e-6)|(cycleOulierPercentage>=100):
         print("Breakpoint for this approximation model is:{0:f}%".format(cycleOulierPercentage))
-        plt.plot(epsilons,deltasHundred,'r', epsilons,deltasThousand,'b')
+        # red_patch = mpatches.Patch(color='red', label='{0:d}'.format(N_HUNDRED))
+        red_patch = mpatches.Patch(color='red', label='1')
+        blue_patch = mpatches.Patch(color='blue', label='{0:d}'.format(N_THOUSAND))
+        info_patch = mpatches.Patch(color="black", label="MC:{0:f},res:{1:f}".format(N_MonteCarlo, cycleOulierPercentage))
+        plt.plot(epsilons,deltasHundred,'r', epsilons,deltasThousand,'b', label="...")
+        plt.legend([red_patch, blue_patch, info_patch])
         plt.show()
         break
     # plt.plot(epsilons,deltasHundred,'ro')
     # plt.show()
     cycleOulierPercentage +=1.0
-
