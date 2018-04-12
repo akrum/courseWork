@@ -21,6 +21,8 @@ N_THOUSAND = 6000
 deltasHundred = np.zeros(1)
 deltasThousand = np.zeros(1)
 epsilons=np.zeros(1)
+cycleUpperLimit = 100
+resultingBreakdownPoint = 100
 def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
     regressionParameters = accurate_result 
     x_points = np.zeros(shape=[regressionSampleQuintity,len(regressionParameters)])
@@ -38,7 +40,7 @@ def rlmForHundred(conn, cycleOulierPercentage, hundredAndThousandConn_send):
     x_points,y_points=modulateRegression(N_HUNDRED,cycleOulierPercentage)
     hundredAndThousandConn_send.send(x_points)
     hundredAndThousandConn_send.send(y_points)
-    APPROXIMATION_MODEL=sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
+    APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
     tempHundredParams=APPROXIMATION_MODEL.fit().params
     conn.send(tempHundredParams)
 def rlmForThousand(conn, cycleOulierPercentage, hundredAndThousandConn_recv):
@@ -47,10 +49,10 @@ def rlmForThousand(conn, cycleOulierPercentage, hundredAndThousandConn_recv):
     temp_x_points,temp_y_points=modulateRegression(N_THOUSAND-N_HUNDRED,cycleOulierPercentage)
     x_points=np.concatenate((x_points, temp_x_points))
     y_points = np.append(y_points, temp_y_points)
-    APPROXIMATION_MODEL = sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
+    APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
     tempThousandParams = APPROXIMATION_MODEL.fit().params
     conn.send(tempThousandParams)
-while cycleOulierPercentage<=100:
+while cycleOulierPercentage<=cycleUpperLimit:
     print("Going to perform test with percentage {0:f}%....".format(cycleOulierPercentage))
     discrepancyHundred=0.0
     discrepancyThousand=0.0
@@ -74,12 +76,16 @@ while cycleOulierPercentage<=100:
     deltasThousand =  np.append(deltasThousand, discrepancyThousand)
     epsilons = np.append(epsilons,cycleOulierPercentage)
     print("Disperancies: {0:f}, {1:f}".format(discrepancyHundred,discrepancyThousand))
-    if (discrepancyHundred-discrepancyThousand<=5e-6)|(cycleOulierPercentage>=100):
+    if (discrepancyHundred-discrepancyThousand<=5e-8)|(cycleOulierPercentage>=cycleUpperLimit):
+        if(cycleUpperLimit<=cycleOulierPercentage): 
+            print("Breakpoint for this approximation model is:{0:f}%".format(cycleOulierPercentage))
+            break
+        resultingBreakdownPoint = cycleOulierPercentage
+        cycleUpperLimit = cycleOulierPercentage+4
         print("Breakpoint for this approximation model is:{0:f}%".format(cycleOulierPercentage))
-        lines = plt.plot(epsilons,deltasHundred,'r', epsilons,deltasThousand,'b', label="...")
-        plt.legend(lines, ['{0:d}'.format(N_HUNDRED),'{0:d}'.format(N_THOUSAND), "blabla"], loc="lower right")
-        plt.title("Plot with nMC:{0:f}, and resulting breakpoint:{1:f}".format(N_MonteCarlo, cycleOulierPercentage))
-        ax = plt.gca()
-        plt.show()
-        break
     cycleOulierPercentage +=1.0
+lines = plt.plot(epsilons,deltasHundred,'r', epsilons,deltasThousand,'b', label="...")
+plt.legend(lines, ['{0:d}'.format(N_HUNDRED),'{0:d}'.format(N_THOUSAND), "blabla"], loc="lower right")
+plt.title("Plot with nMC:{0:f}, and resulting breakpoint:{1:f}".format(N_MonteCarlo, resultingBreakdownPoint))
+ax = plt.gca()
+plt.show()
