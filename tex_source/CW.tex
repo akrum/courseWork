@@ -260,16 +260,16 @@ $U(-5,5)$ - равномерное распределение на отрезк�
 \end{itemize}
 \newpage
 \section{Построение оценки параметров регресии с помощью группирования выборки}
-Имеем ту же самую модель регрессии (3), предполагая что имеем регрессию без выбросов (1). 
+Будем работать с моделью регрессии (3), предполагая что имеем регрессию без выбросов (1). 
 Каждый $y_i$ принадлежит нормальному распределению:
 \begin{eqnarray}
     y_i=f(x_i,\beta)+\varepsilon_i \sim \mathcal{N}(f(x_i,\beta),\sigma^2)
 \end{eqnarray}
 Будем строить оценки таким образом: разделим множество значений функции регресси, т.е множество $\mathcal{R}$ на $k$ полуинтервалов:
 \begin{eqnarray}
-    \mathcal{R}=(-\infty,a_1]U(a_1,a_2]U\dots U(a_{k-1},+\infty ]
+    \mathcal{R}=(-\infty,a_1]U(a_1,a_2]U\dots U(a_{k-1},+\infty )
 \end{eqnarray}
-Каждый из таких полуинтервалов пронумеруем: $\nu_0,\dots,\nu_{k-1}$.
+Обозначим полученные интервалы: $\nu_0,\dots,\nu_{k-1}$.
 
 Тогда:
 \begin{eqnarray}
@@ -283,7 +283,7 @@ $U(-5,5)$ - равномерное распределение на отрезк�
 \begin{eqnarray}
     \textup{erf}(x)=\frac{2}{\sqrt{\pi}}\int_0^{x}e^{-t^2}
 \end{eqnarray}
-Все наблюдения отнесем к классам $\{\nu_i\}_{i=0}^{k-1}$ с помощью метода $k$-средних.
+Все наблюдения $y_i$ отнесем к классам $\{\nu_i\}_{i=0}^{k-1}$ с помощью метода $k$-средних.
 Тогда для каждого $y_i$ будем иметь класс $\mu_i$.
 \begin{eqnarray}
     \mu_i=j, \textup{если $y_i$ отнесли к полуинтервалу $\nu_j$}
@@ -302,6 +302,7 @@ $U(-5,5)$ - равномерное распределение на отрезк�
     (\textup{erf} x)^2\approx 1- \exp(-x^2 \frac{\frac{4}{\pi}+ax^2}{1+ax^2}),\\
     a=\frac{8}{3\pi}\frac{3-\pi}{\pi -4}
 \end{eqnarray}
+Оно считается достаточно точным для $x$ близких к $0$ и к $\infty$ \cite{Winitzki}. \hfill\break
 Найдем сразу производную для этого приближения:
 \begin{eqnarray}
     \textup{erf}'(x) = \exp(-x^2 \frac{\frac{4}{\pi}+ax^2}{1+ax^2}) \frac{-2x\frac{\frac{4}{\pi}+ax^2}{1+ax^2}+(2ax^3)\frac{\frac{4}{\pi}+ax^2}{1+ax^2}-\frac{2ax^3}{1+ax^2}}{2\sqrt{1- \exp(-x^2 \frac{\frac{4}{\pi}+ax^2}{1+ax^2})}}
@@ -311,7 +312,7 @@ $U(-5,5)$ - равномерное распределение на отрезк�
 \begin{eqnarray}
     \frac{\delta L}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln(P(\mu_i=j|y_i\in \nu_j))}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln P(y_i\in \nu_{\mu_i})}{\delta \beta}=\\
     =\frac{\delta \sum_{i=1}^{n} \ln(\frac{1}{2}(\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2})) )         }{\delta \beta}=\\
-    =  \sum_{i=1}^{n} \frac{((\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2}))}{ ((\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2}))}  (-1) \frac{\delta f(x_i,\beta)}{\delta \beta} )=
+    =  \sum_{i=1}^{n} \frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2}))}  (-1) \frac{\delta f(x_i,\beta)}{\delta \beta} )=
 \end{eqnarray}
 % \section{Список литературы}
 % \printbibliography
@@ -342,6 +343,16 @@ $U(-5,5)$ - равномерное распределение на отрезк�
     \textit{Comparison of Robust Regression Methods
     in Linear Regression},
     Int. J. Contemp. Math. Sciences, Vol. 6, 2011, no. 9, 409 - 421
+
+    \bibitem{ComparisonRobust}
+    \"{O}zlem G\"{u}r\"{u}nl\"{u} Alma,
+    \textit{Comparison of Robust Regression Methods
+    in Linear Regression},
+    Int. J. Contemp. Math. Sciences, Vol. 6, 2011, no. 9, 409 - 421
+
+    \bibitem{Winitzki}
+    Sergei Winitzki,
+    \textit{A handy approximation for the error function and its inverse}
 \end{thebibliography}
 \addcontentsline{toc}{section}{Список Литературы}
 \end{document}
