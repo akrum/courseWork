@@ -292,6 +292,7 @@ $U(-5,5)$ - равномерное распределение на отрезк�
 \begin{eqnarray}
     P(\mu_i=j|y_i\in \nu_j)=P(y_i\in \nu_{\mu_i})
 \end{eqnarray}
+\subsection{Построение функции правдоподобия}
 Составим функцию правдоподобия:
 \begin{eqnarray}
     L(\beta,\sigma^2, \nu_0,\dots, \nu_{k-1})=\textup{ln}(\prod_{i=1}^{n}P(\mu_i=j|y_i\in \nu_j))=\\
@@ -308,7 +309,7 @@ $U(-5,5)$ - равномерное распределение на отрезк�
     \textup{erf}'(x) = \exp(-x^2 \frac{\frac{4}{\pi}+ax^2}{1+ax^2}) \frac{-2x\frac{\frac{4}{\pi}+ax^2}{1+ax^2}+(2ax^3)\frac{\frac{4}{\pi}+ax^2}{1+ax^2}-\frac{2ax^3}{1+ax^2}}{2\sqrt{1- \exp(-x^2 \frac{\frac{4}{\pi}+ax^2}{1+ax^2})}}
 \end{eqnarray}
 Будем максимизировать функцию $L$.
-Для этого будем искать нули ее производной с помощью вычислительных методов(например, метода простой итерации).
+Для этого будем искать нули ее производной с помощью вычислительных методов(будем использовать метод секущих).
 \begin{eqnarray}
     \frac{\delta L}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln(P(\mu_i=j|y_i\in \nu_j))}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln P(y_i\in \nu_{\mu_i})}{\delta \beta}=\\
     =\frac{\delta \sum_{i=1}^{n} \ln(\frac{1}{2}(\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2})) )         }{\delta \beta}=\\
@@ -318,8 +319,10 @@ $U(-5,5)$ - равномерное распределение на отрезк�
         x_{i1}\\
         \dots\\
         x_{in}
-    \end{pmatrix}\times  \frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2}))}
+    \end{pmatrix}^T\times  \frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma^2})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma^2}))}
 \end{eqnarray}
+Итак, уравнение (29) и будем использовать для метода секущих.
+\subsection{Метод секущих}
 % \section{Список литературы}
 % \printbibliography
 \begin{thebibliography}{9}

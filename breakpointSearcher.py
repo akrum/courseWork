@@ -4,11 +4,8 @@ import matplotlib.patches as mpatches
 from random import random
 import pylab
 import scipy
-from outliers import smirnov_grubbs as grubbs
 from matplotlib.backends.backend_pdf import PdfPages
 from statsmodels.robust.scale import mad
-import theano
-import theano.tensor as T
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from multiprocessing import Process, Queue , Pipe
@@ -23,6 +20,7 @@ deltasThousand = np.zeros(1)
 epsilons=np.zeros(1)
 cycleUpperLimit = 100
 resultingBreakdownPoint = 100
+didFindFirstBreakdownPoint = False
 def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
     regressionParameters = accurate_result 
     x_points = np.zeros(shape=[regressionSampleQuintity,len(regressionParameters)])
@@ -77,12 +75,14 @@ while cycleOulierPercentage<=cycleUpperLimit:
     epsilons = np.append(epsilons,cycleOulierPercentage)
     print("Disperancies: {0:f}, {1:f}".format(discrepancyHundred,discrepancyThousand))
     if (discrepancyHundred-discrepancyThousand<=5e-8)|(cycleOulierPercentage>=cycleUpperLimit):
-        if(cycleUpperLimit<=cycleOulierPercentage): 
-            print("Breakpoint for this approximation model is:{0:f}%".format(cycleOulierPercentage))
+        if(cycleOulierPercentage>=cycleUpperLimit): 
+            print("Breakpoint for this approximation model is:{0:f}%".format(resultingBreakdownPoint))
             break
-        resultingBreakdownPoint = cycleOulierPercentage
-        cycleUpperLimit = cycleOulierPercentage+4
-        print("Breakpoint for this approximation model is:{0:f}%".format(cycleOulierPercentage))
+        if(didFindFirstBreakdownPoint==False):
+            resultingBreakdownPoint = cycleOulierPercentage
+            cycleUpperLimit = cycleOulierPercentage+4
+            didFindFirstBreakdownPoint=True
+            print("Breakpoint for this approximation model is:{0:f}%".format(cycleOulierPercentage))
     cycleOulierPercentage +=1.0
 lines = plt.plot(epsilons,deltasHundred,'r', epsilons,deltasThousand,'b', label="...")
 plt.legend(lines, ['{0:d}'.format(N_HUNDRED),'{0:d}'.format(N_THOUSAND), "blabla"], loc="lower right")
