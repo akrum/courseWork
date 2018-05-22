@@ -43,7 +43,7 @@ class approximationGEMModel:
             current_likelihood_result+= np.log(self.P(self.exogen[i], self.endogen[i], self.mu_data[i], beta))
         return current_likelihood_result
     def dlikelihood_f(self, beta):
-        current_likelihood_derivative_result = 0.0
+        current_likelihood_derivative_result = np.zeros(self.exogen[0].size)
         for i in range(0, self.endogen.size):
             current_likelihood_derivative_result+= self.dP(self.exogen[i], self.endogen[i], self.mu_data[i], beta)
         # print current_likelihood_derivative_result
@@ -112,8 +112,8 @@ class approximationGEMModel:
     def gradient(self, beta_0,possible_betas):
         nabla_beta = self.dlikelihood_f(beta_0).reshape((2,1))
         beta_new = beta_0-0.9*nabla_beta
-        print (self.likelihood_f(beta_new),self.likelihood_f(beta_0))
-        if abs(self.likelihood_f(beta_new)-self.likelihood_f(beta_0))<=2.0:
+        # print (self.likelihood_f(beta_new),self.likelihood_f(beta_0))
+        if np.less(np.abs(beta_0-beta_new),np.full(beta_0.size,1e-3)).all():
             possible_betas.append(beta_new)
             self.threadingEvent.set()
             return 0
@@ -154,7 +154,7 @@ def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
             y_points[i]=np.random.normal(100,10, size=1)
     return (x_points,y_points)
 
-x_points,y_points=modulateRegression(10, 1.0)
+x_points,y_points=modulateRegression(100, 1.0)
 APPROXIMATION_MODEL = GEM(x_points,y_points)
 print APPROXIMATION_MODEL.fit()
 # APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
