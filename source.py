@@ -11,28 +11,28 @@ import theano.tensor as T
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
-# SAMPLE_QUINTITY=1000
-# OUTLIER_PERCENTAGE = 10.0
-# regressionParameters = np.matrix([100,4]).T 
+SAMPLE_QUINTITY=1000
+OUTLIER_PERCENTAGE = 50.0
+regressionParameters = np.matrix([90,4]).T 
 
 
-# x_points = np.zeros(shape=[SAMPLE_QUINTITY,len(regressionParameters)])
-# y_points = np.zeros(shape = SAMPLE_QUINTITY)
-# # plt.plot(x_points,y_points,'ro')
-# # # plt.hist(y_points,bins="auto")
-# # plt.show()
-# for i in range(0,SAMPLE_QUINTITY):
-#     if random()>OUTLIER_PERCENTAGE/100:
-#         x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
-#         # print(x_points[i])
-#         y_points[i]=(x_points[i]*regressionParameters)+np.random.normal(0,4)
-#     else:
-#         x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
-#         y_points[i]=np.random.normal(100,10, size=1)
-# # plt.hist(y_points, bins="auto")
-# # plt.show()
-# # plt.plot(x_points.T[1],y_points,'ro')
-# # plt.show()
+x_points = np.zeros(shape=[SAMPLE_QUINTITY,len(regressionParameters)])
+y_points = np.zeros(shape = SAMPLE_QUINTITY)
+# plt.plot(x_points,y_points,'ro')
+# # plt.hist(y_points,bins="auto")
+# plt.show()
+for i in range(0,SAMPLE_QUINTITY):
+    if random()>OUTLIER_PERCENTAGE/100:
+        x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
+        # print(x_points[i])
+        y_points[i]=(x_points[i]*regressionParameters)+np.random.normal(0,4)
+    else:
+        x_points[i] = np.append(np.ones(1),np.random.uniform(-5,5,size = len(regressionParameters)-1))
+        y_points[i]=np.random.normal(100,15, size=1)
+# plt.hist(y_points, bins="auto")
+# plt.show()
+plt.plot(x_points.T[1],y_points,'ro')
+plt.show()
 
 
 # # modelspec = ('cost ~ np.log(units) + np.log(units):item + item') #where item is a categorical variable
@@ -54,9 +54,3 @@ import statsmodels.formula.api as smf
 # #OLS and recursiveLS have the same results
 # print(rlm_results.summary())
 
-encoded = "ылрготлазкмрабааоывт"
-key = "4736015892473601589247360158924736015892"
-decoded = "ылрготлазкмрабааоывт"
-for i in range(0,len(encoded)-1):
-    decoded[i]=str((int(eval(encoded[i]))-int(eval(key[i])))%32)
-print(decoded)
