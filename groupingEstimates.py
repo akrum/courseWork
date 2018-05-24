@@ -5,8 +5,10 @@ from multiprocessing import Process, Queue , Pipe
 from thread import start_new_thread
 import threading
 import scipy.special
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 accurate_result=np.matrix([90,4]).T
-epsilon = 1.0
+epsilon = 10.0
 class approximationGEMModel:
     def __init__(self, exogen_data, endogen_data):
         self.a = 8.0/(3.0*math.pi)*(3.0-math.pi)/(math.pi-4.0)
@@ -65,7 +67,7 @@ class approximationGEMModel:
         self.mu_data = np.zeros(self.endogen.size)
         for i in range(0, self.endogen.size):
             self.mu_data[i] = int(round(self.endogen[i]/self.interval_length))
-        print (self.endogen[0],self.mu_data[0])
+        # print (self.endogen[0],self.mu_data[0])
         # print int(round(-2.3/self.interval_length))
     def reclassificate(self, delta):
         self.mu_data_reclassificated = np.zeros(self.endogen.size)
@@ -145,20 +147,36 @@ class approximationGEMModel:
             gradientThread.start()
     
     def fit(self):
+        # self.classificate()
+        # beta_hat=np.matrix(np.ones(self.exogen[0].size)).T
+        # print self.dlikelihood_f(beta_hat, self.mu_data)
+        # withoud_classification = self.dlikelihood_f(accurate_result, self.mu_data)
+        # print withoud_classification
+
+        # temp_delta = 1.0
+        # self.reclassificate(temp_delta)
+        # temp_accurate_result = self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
+        # while np.equal(temp_accurate_result,accurate_result).all():
+        #     temp_delta+=1.0
+        #     temp_accurate_result = self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
+        # print self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
+        return np.zeros(self.exogen[0].size)
+    def compare(self):
         self.classificate()
         beta_hat=np.matrix(np.ones(self.exogen[0].size)).T
-        print self.dlikelihood_f(beta_hat, self.mu_data)
-        withoud_classification = self.dlikelihood_f(accurate_result, self.mu_data)
-        print withoud_classification
+        # print self.dlikelihood_f(beta_hat, self.mu_data)
+        without_classification = self.dlikelihood_f(accurate_result, self.mu_data)
+        print without_classification
 
         temp_delta = 1.0
         self.reclassificate(temp_delta)
-        temp_accurate_result = self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
-        while np.equal(temp_accurate_result,accurate_result).all():
-            temp_delta+=1.0
-            temp_accurate_result = self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
+        with_classification = self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
+        while np.equal(with_classification,accurate_result).all():
+            temp_delta+=0.5
+            with_classification = self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
+    
         print self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
-        return np.zeros(self.exogen[0].size)
+        return (without_classification, with_classification)
 def GEM(exogen_data, endogen_data, *args):
     return approximationGEMModel(exogen_data,endogen_data)
 
@@ -179,7 +197,25 @@ def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
     return (x_points,y_points)
 
 x_points,y_points=modulateRegression(500, epsilon)
-APPROXIMATION_MODEL = GEM(x_points,y_points)
-print APPROXIMATION_MODEL.fit()
+epsilons = np.zeros(1)
+not_classificated = np.zeros(1)
+classificated = np.zeros(1)
+while epsilon<=29.0:
+    print "testing with epsilon {0:f}".format(epsilon)
+    epsilons=np.append(epsilons,epsilon)
+    x_points,y_points=modulateRegression(1000, epsilon)
+    appro_model = GEM(x_points,y_points)
+    without_class, with_class = appro_model.compare()
+    not_classificated=np.append(not_classificated,np.linalg.norm(without_class))
+    classificated= np.append(classificated, np.linalg.norm(with_class))
+    epsilon+=2.0
+    print "\n"
+lines = plt.plot(epsilons,not_classificated,'r', epsilons,classificated,'b', label="...")
+plt.legend(lines, ["not classificated","classificated", "blabla"], loc="lower right")
+plt.title("likelyhood derivatives")
+ax = plt.gca()
+plt.show()
+# APPROXIMATION_MODEL = GEM(x_points,y_points)
+# print APPROXIMATION_MODEL.fit()
 # APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
 # tempHundredParams=APPROXIMATION_MODEL.fit().params
