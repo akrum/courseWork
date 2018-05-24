@@ -8,7 +8,7 @@ import scipy.special
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 accurate_result=np.matrix([90,4]).T
-epsilon = 10.0
+epsilon = 8.0
 class approximationGEMModel:
     def __init__(self, exogen_data, endogen_data):
         self.a = 8.0/(3.0*math.pi)*(3.0-math.pi)/(math.pi-4.0)
@@ -200,7 +200,7 @@ x_points,y_points=modulateRegression(500, epsilon)
 epsilons = np.zeros(1)
 not_classificated = np.zeros(1)
 classificated = np.zeros(1)
-while epsilon<=29.0:
+while epsilon<=52.0:
     print "testing with epsilon {0:f}".format(epsilon)
     epsilons=np.append(epsilons,epsilon)
     x_points,y_points=modulateRegression(1000, epsilon)
