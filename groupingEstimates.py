@@ -163,8 +163,8 @@ class approximationGEMModel:
         return np.zeros(self.exogen[0].size)
     def compare(self):
         self.classificate()
-        beta_hat=np.matrix(np.ones(self.exogen[0].size)).T
-        # print self.dlikelihood_f(beta_hat, self.mu_data)
+        beta_hat=np.matrix([170,8]).T
+        print self.dlikelihood_f(beta_hat, self.mu_data)
         without_classification = self.dlikelihood_f(accurate_result, self.mu_data)
         print without_classification
 
