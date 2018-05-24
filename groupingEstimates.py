@@ -6,11 +6,11 @@ from thread import start_new_thread
 import threading
 import scipy.special
 accurate_result=np.matrix([90,4]).T
-epsilon = 0.01
+epsilon = 1.0
 class approximationGEMModel:
     def __init__(self, exogen_data, endogen_data):
         self.a = 8.0/(3.0*math.pi)*(3.0-math.pi)/(math.pi-4.0)
-        self.interval_length = 0.0001
+        self.interval_length = 0.001
         self.k = 100000000
         self.intervals_left_bound = 0.0-self.interval_length*self.k/2.0
         self.intervals_right_bound = 0.0+self.interval_length*self.k/2.0
@@ -50,15 +50,15 @@ class approximationGEMModel:
         temp/= self.erf((a_mu_i_plus_1-x_i*beta_hat)/(math.sqrt(2.0*self.sigmasq)))-self.erf((a_mu_i-x_i*beta_hat)/(math.sqrt(2.0*self.sigmasq)))
         return 2.0*x_i*temp.item((0,0))
     
-    def likelihood_f(self, beta):
+    def likelihood_f(self, beta, mu_data):
         current_likelihood_result = 0.0
         for i in range(0, self.endogen.size):
-            current_likelihood_result+= np.log(self.P(self.exogen[i], self.endogen[i], self.mu_data[i], beta))
+            current_likelihood_result+= np.log(self.P(self.exogen[i], self.endogen[i], mu_data[i], beta))
         return current_likelihood_result
-    def dlikelihood_f(self, beta):
+    def dlikelihood_f(self, beta, mu_data):
         current_likelihood_derivative_result = np.zeros(self.exogen[0].size)
         for i in range(0, self.endogen.size):
-            current_likelihood_derivative_result+= self.dP(self.exogen[i], self.endogen[i], self.mu_data[i], beta)
+            current_likelihood_derivative_result+= self.dP(self.exogen[i], self.endogen[i], mu_data[i], beta)
         # print current_likelihood_derivative_result
         return -0.5*current_likelihood_derivative_result
     def classificate(self):
@@ -67,7 +67,26 @@ class approximationGEMModel:
             self.mu_data[i] = int(round(self.endogen[i]/self.interval_length))
         print (self.endogen[0],self.mu_data[0])
         # print int(round(-2.3/self.interval_length))
-    def reclassificate(self):
+    def reclassificate(self, delta):
+        self.mu_data_reclassificated = np.zeros(self.endogen.size)
+        for i in range(0, self.endogen.size):
+            current_faced_classes={}
+            for j in range(0, self.endogen.size):
+                # print (np.linalg.norm(self.exogen[i]-self.exogen[j]))
+                if  (np.linalg.norm(self.exogen[i]-self.exogen[j])<=delta) :
+                    if current_faced_classes.has_key(self.mu_data[j]):
+                        current_faced_classes[self.mu_data[j]]+=1
+                    else:
+                        current_faced_classes[self.mu_data[j]]=1
+            maximumfacedtimes = 1
+            maximumfacedclass = self.mu_data[i]
+            for key in current_faced_classes:
+                # print (key, current_faced_classes[key])
+                if maximumfacedtimes < current_faced_classes[key]:
+                    maximumfacedtimes = current_faced_classes[key]
+                    maximumfacedclass = key
+            # print (maximumfacedtimes, maximumfacedclass)
+            self.mu_data_reclassificated[i] = maximumfacedclass
         return 0
     def dichotomy_var(self, beta_0, beta_1, possible_beta_hats, psi, variable_index):
         if abs(beta_0[variable_index]-beta_1[variable_index])<=2*psi[variable_index]:
@@ -114,7 +133,7 @@ class approximationGEMModel:
             self.dichotomy(beta_2,beta_1,possible_beta_hats,psi)
         
     def gradient(self, beta_0,possible_betas):
-        nabla_beta = self.dlikelihood_f(beta_0).reshape((2,1))
+        nabla_beta = self.dlikelihood_f(beta_0).reshape((beta_0.size,1))
         beta_new = beta_0-nabla_beta
         # print beta_new
         if np.less(np.abs(beta_0-beta_new),np.full(beta_0.size,1e-1)).all():
@@ -128,17 +147,17 @@ class approximationGEMModel:
     def fit(self):
         self.classificate()
         beta_hat=np.matrix(np.ones(self.exogen[0].size)).T
-        print self.dlikelihood_f(beta_hat)
-        print self.dlikelihood_f(accurate_result)
-        # dichotomyPossibleBetaHats = []
-        # self.dichotomy(np.matrix(np.full(self.exogen[0].size, -500)).T,np.matrix(np.full(self.exogen[0].size, 500)).T,dichotomyPossibleBetaHats, np.full(self.exogen[0].size, 1.0))
-        # print(dichotomyPossibleBetaHats)
-        current_beta = np.matrix(np.full(self.exogen[0].size, 100)).T
-        temp_possible_betas = []
-        self.gradient(accurate_result,temp_possible_betas)
-        self.threadingEvent.wait()
-        print temp_possible_betas
-        self.threadingEvent.clear()
+        print self.dlikelihood_f(beta_hat, self.mu_data)
+        withoud_classification = self.dlikelihood_f(accurate_result, self.mu_data)
+        print withoud_classification
+
+        temp_delta = 1.0
+        self.reclassificate(temp_delta)
+        temp_accurate_result = self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
+        while np.equal(temp_accurate_result,accurate_result).all():
+            temp_delta+=1.0
+            temp_accurate_result = self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
+        print self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
         return np.zeros(self.exogen[0].size)
 def GEM(exogen_data, endogen_data, *args):
     return approximationGEMModel(exogen_data,endogen_data)
@@ -159,7 +178,7 @@ def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
             y_points[i]=np.random.normal(100.0,15.0, size=1)
     return (x_points,y_points)
 
-x_points,y_points=modulateRegression(100, 1.0)
+x_points,y_points=modulateRegression(500, epsilon)
 APPROXIMATION_MODEL = GEM(x_points,y_points)
 print APPROXIMATION_MODEL.fit()
 # APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
