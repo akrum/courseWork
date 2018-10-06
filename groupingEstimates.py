@@ -7,6 +7,7 @@ import threading
 import scipy.special
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import statsmodels.api as sm
 accurate_result=np.matrix([90,4]).T
 epsilon = 8.0
 class approximationGEMModel:
@@ -145,11 +146,27 @@ class approximationGEMModel:
         else:
             gradientThread = threading.Thread(target=self.gradient, args=(beta_new, possible_betas))
             gradientThread.start()
-    
     def fit(self):
-        # self.classificate()
-        # beta_hat=np.matrix(np.ones(self.exogen[0].size)).T
+        self.classificate()
+
+        self.reclassificate(0.5)
+
+        beta_hat=np.matrix(np.ones(self.exogen[0].size)).T
         # print self.dlikelihood_f(beta_hat, self.mu_data)
+
+
+        beta_hat_next = np.matrix(np.zeros(self.exogen[0].size)).T
+        while(np.linalg.norm(self.dlikelihood_f(beta_hat_next,self.mu_data_reclassificated))>=0.1):
+            dlikelihood_f_for_beta_hat = self.dlikelihood_f(beta_hat, self.mu_data_reclassificated)
+            dlikelihood_f_for_beta_hat_next = self.dlikelihood_f(beta_hat_next, self.mu_data_reclassificated)
+            delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
+            for i in range(self.exogen[0].size):
+                delta_beta[i] = -dlikelihood_f_for_beta_hat_next[i]/(dlikelihood_f_for_beta_hat_next[i]-dlikelihood_f_for_beta_hat[i])*(beta_hat_next[i]-beta_hat[i])
+            beta_hat = beta_hat_next
+            beta_hat_next = beta_hat_next+delta_beta
+
+
+
         # withoud_classification = self.dlikelihood_f(accurate_result, self.mu_data)
         # print withoud_classification
 
@@ -160,7 +177,7 @@ class approximationGEMModel:
         #     temp_delta+=1.0
         #     temp_accurate_result = self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
         # print self.dlikelihood_f(accurate_result, self.mu_data_reclassificated)
-        return np.zeros(self.exogen[0].size)
+        return beta_hat_next
     def compare(self):
         self.classificate()
         beta_hat=np.matrix([170,8]).T
@@ -197,25 +214,26 @@ def modulateRegression(regressionSampleQuintity,regressionOutlierPercentage):
     return (x_points,y_points)
 
 x_points,y_points=modulateRegression(500, epsilon)
-epsilons = np.zeros(1)
-not_classificated = np.zeros(1)
-classificated = np.zeros(1)
-while epsilon<=52.0:
-    print "testing with epsilon {0:f}".format(epsilon)
-    epsilons=np.append(epsilons,epsilon)
-    x_points,y_points=modulateRegression(1000, epsilon)
-    appro_model = GEM(x_points,y_points)
-    without_class, with_class = appro_model.compare()
-    not_classificated=np.append(not_classificated,np.linalg.norm(without_class))
-    classificated= np.append(classificated, np.linalg.norm(with_class))
-    epsilon+=2.0
-    print "\n"
-lines = plt.plot(epsilons,not_classificated,'r', epsilons,classificated,'b', label="...")
-plt.legend(lines, ["not classificated","classificated", "blabla"], loc="lower right")
-plt.title("likelyhood derivatives")
-ax = plt.gca()
-plt.show()
-# APPROXIMATION_MODEL = GEM(x_points,y_points)
-# print APPROXIMATION_MODEL.fit()
-# APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
-# tempHundredParams=APPROXIMATION_MODEL.fit().params
+# epsilons = np.zeros(1)
+# not_classificated = np.zeros(1)
+# classificated = np.zeros(1)
+# while epsilon<=52.0:
+#     print "testing with epsilon {0:f}".format(epsilon)
+#     epsilons=np.append(epsilons,epsilon)
+#     x_points,y_points=modulateRegression(1000, epsilon)
+#     appro_model = GEM(x_points,y_points)
+#     without_class, with_class = appro_model.compare()
+#     not_classificated=np.append(not_classificated,np.linalg.norm(without_class))
+#     classificated= np.append(classificated, np.linalg.norm(with_class))
+    # epsilon+=2.0
+    # print "\n"
+# lines = plt.plot(epsilons,not_classificated,'r', epsilons,classificated,'b', label="...")
+# plt.legend(lines, ["not classified","classified", "blabla"], loc="lower right")
+# plt.title("likelyhood derivatives")
+# ax = plt.gca()
+# plt.show()
+APPROXIMATION_MODEL = GEM(x_points,y_points)
+print APPROXIMATION_MODEL.fit()
+APPROXIMATION_MODEL=sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
+tempHundredParams=APPROXIMATION_MODEL.fit().params
+# print(tempHundredParams)
