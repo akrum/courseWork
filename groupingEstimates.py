@@ -2,7 +2,9 @@ import numpy as np
 from random import random
 import math
 import threading
+import copy
 import statsmodels.api as sm
+
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
@@ -254,6 +256,9 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         return -0.5 * current_likelihood_derivative_result
 
+    def full_cl_recl_dlikelihood_f(self, beta):
+        return self._dlikelihood_f(beta, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(beta, self._np_freq_negative_reclassified, is_positive=False)
+
     def classify(self):
         self._np_freq_positive = [None for i in range(self.endogen.size)]
         self._np_freq_negative = [None for i in range(self.endogen.size)]
@@ -335,6 +340,33 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         return beta_hat_next
 
+    def fit_intercept(self):
+        self.classify()
+        self.reclassify(0.5)
+
+        print("fitting.....")
+
+        beta_hat = np.matrix(np.ones(self.exogen[0].size)).T
+        beta_hat_next = np.matrix(np.zeros(self.exogen[0].size)).T
+
+        while np.linalg.norm(self.full_cl_recl_dlikelihood_f(beta_hat_next)) >= self.METHOD_ACCURACY:
+            dlikelihood_f_for_beta_hat_next = self.full_cl_recl_dlikelihood_f(beta_hat_next)
+            delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
+
+            dlikelihood_derivative_approximation = np.zeros((self.exogen[0].size, self.exogen[0].size))
+
+            for i in range(self.exogen[0].size):
+                temp_beta = copy.deepcopy(beta_hat_next)
+                temp_beta[i] = beta_hat[i]
+                # FIXME: something bad with dimensions
+                dlikelihood_derivative_approximation = (self.full_cl_recl_dlikelihood_f(beta_hat_next) - self.full_cl_recl_dlikelihood_f(temp_beta)) / (beta_hat_next[i] - beta_hat[i])
+
+            delta_beta = - dlikelihood_f_for_beta_hat_next * np.linalg.inv(dlikelihood_derivative_approximation)
+            beta_hat = beta_hat_next
+            beta_hat_next = beta_hat_next + delta_beta
+
+        return beta_hat_next
+
     def fit_without_classification(self):
         pass
 
@@ -362,7 +394,7 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
 x_points, y_points = modulateRegression(100, OUTLIER_PERCENTAGE)
 
 APPROXIMATION_MODEL = GEM(x_points,y_points)
-print(APPROXIMATION_MODEL.fit())
+print(APPROXIMATION_MODEL.fit_intercept())
 
 # APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
 # tempHundredParams = APPROXIMATION_MODEL.fit().params
