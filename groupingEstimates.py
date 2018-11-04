@@ -189,6 +189,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         self._np_freq_negative = None
         self._np_freq_positive_reclassified = None
         self._np_freq_negative_reclassified = None
+        self.METHOD_ACCURACY = 1e-5
 
     def _prob_func(self, x_i, y_i, mu_i, beta_hat, is_positive=True):
         a_mu_i_plus_1 = float('nan')
@@ -288,7 +289,6 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
                             current_faced_classes_negative[self._np_freq_negative[j]] = 1
                     else:
                         continue
-            # TODO: продумать переклассификацию
             maximumfacedtimes_positive = 1 if self._np_freq_positive[i] is not None else 0
             maximumfacedclass_positive = self._np_freq_positive[i]
             maximumfacedtimes_negative = 1 if self._np_freq_negative[i] is not None else 0
@@ -320,7 +320,8 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         beta_hat = np.matrix(np.ones(self.exogen[0].size)).T
         beta_hat_next = np.matrix(np.zeros(self.exogen[0].size)).T
 
-        while np.linalg.norm(self._dlikelihood_f(beta_hat_next, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(beta_hat_next, self._np_freq_negative_reclassified, is_positive=False)) >= 0.1:
+        # FIXME: something bad with numerical method
+        while np.linalg.norm(self._dlikelihood_f(beta_hat_next, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(beta_hat_next, self._np_freq_negative_reclassified, is_positive=False)) >= self.METHOD_ACCURACY:
             dlikelihood_f_for_beta_hat = self._dlikelihood_f(beta_hat, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(beta_hat, self._np_freq_negative_reclassified, is_positive=False)
             dlikelihood_f_for_beta_hat_next = self._dlikelihood_f(beta_hat_next, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(beta_hat_next, self._np_freq_negative_reclassified, is_positive=False)
             delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
@@ -363,8 +364,8 @@ x_points, y_points = modulateRegression(100, OUTLIER_PERCENTAGE)
 APPROXIMATION_MODEL = GEM(x_points,y_points)
 print(APPROXIMATION_MODEL.fit())
 
-APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
-tempHundredParams = APPROXIMATION_MODEL.fit().params
+# APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
+# tempHundredParams = APPROXIMATION_MODEL.fit().params
 
-APPROXIMATION_MODEL = sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
-print(APPROXIMATION_MODEL.fit().params)
+# APPROXIMATION_MODEL = sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
+# print(APPROXIMATION_MODEL.fit().params)
