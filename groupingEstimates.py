@@ -4,7 +4,7 @@ import math
 import threading
 import copy
 import statsmodels.api as sm
-
+import warnings
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
@@ -12,6 +12,7 @@ OUTLIER_PERCENTAGE = 8.0
 
 class ApproximationGEMModel:
     def __init__(self, exogen_data, endogen_data):
+        warnings.warn("AproximationGEMModel is deperecated. Please, use AproximationGEMModel redesigned instead", DeprecationWarning)
         self._a = 8.0 / (3.0 * math.pi) * (3.0 - math.pi) / (math.pi - 4.0)
         self.interval_length = 0.001
         self._k_every_segment = 50000000
@@ -25,13 +26,16 @@ class ApproximationGEMModel:
         self.mu_data_reclassified = None
 
     def erf(self, value):
-        return math.sqrt(1.0 - math.exp((-1.0*value*value) * (4.0 / math.pi + self._a * value * value) / (1.0 + self._a * value * value)))
+        return math.sqrt(1.0 - math.exp(
+            (-1.0 * value * value) * (4.0 / math.pi + self._a * value * value) / (1.0 + self._a * value * value)))
 
     def derf(self, value):
 
-        temp = math.exp((-1*value*value) * (4 / math.pi + self._a * value * value) / (1 + self._a * value * value))
-        temp *= ((-2 * value + 2 * self._a * value * value * value) * (4 / math.pi + self._a * value * value) / (1 + self._a * value * value) - 2 * self._a * value * value * value / (1 + self._a * value * value))
-        temp /= 2 * math.sqrt(1 - math.exp((-1*value*value) * (4 / math.pi + self._a * value * value) / (1 + self._a * value * value)))
+        temp = math.exp((-1 * value * value) * (4 / math.pi + self._a * value * value) / (1 + self._a * value * value))
+        temp *= ((-2 * value + 2 * self._a * value * value * value) * (4 / math.pi + self._a * value * value) / (
+                    1 + self._a * value * value) - 2 * self._a * value * value * value / (1 + self._a * value * value))
+        temp /= 2 * math.sqrt(1 - math.exp(
+            (-1 * value * value) * (4 / math.pi + self._a * value * value) / (1 + self._a * value * value)))
 
         return temp
 
@@ -45,27 +49,35 @@ class ApproximationGEMModel:
         a_mu_i_plus_1 = (mu_i - self._k_every_segment / 2) * self.interval_length
         a_mu_i = (mu_i - self._k_every_segment / 2) * self.interval_length - self.interval_length
 
-        return 0.5 * (self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))-self.erf((a_mu_i - x_i * beta_hat)/(math.sqrt(2.0 * self.sigmasq))))
+        return 0.5 * (self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf(
+            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
 
     def _dprob_func(self, x_i, y_i, mu_i, beta_hat):
         if mu_i == 0:
-            return 2.0*x_i*self.derf((self.intervals_left_bound-x_i*beta_hat)/(math.sqrt(2.0*self.sigmasq)))/(1.0+self.erf((self.intervals_left_bound-x_i*beta_hat)/(math.sqrt(2.0*self.sigmasq)))).item((0, 0))
+            return 2.0 * x_i * self.derf(
+                (self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) / (1.0 + self.erf(
+                (self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))).item((0, 0))
 
-        if mu_i == self._k_every_segment-1:
-            return 2.0*x_i*self.derf((self.intervals_right_bound-x_i*beta_hat)/(math.sqrt(2.0*self.sigmasq)))/(1.0+self.erf((self.intervals_left_bound-x_i*beta_hat)/(math.sqrt(2.0*self.sigmasq)))).item((0, 0))
+        if mu_i == self._k_every_segment - 1:
+            return 2.0 * x_i * self.derf(
+                (self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) / (1.0 + self.erf(
+                (self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))).item((0, 0))
 
         a_mu_i_plus_1 = (mu_i - self._k_every_segment / 2) * self.interval_length
         a_mu_i = (mu_i - self._k_every_segment / 2) * self.interval_length - self.interval_length
 
-        if self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf((a_mu_i - x_i*beta_hat) / (math.sqrt(2.0 * self.sigmasq))) == 0.0:
+        if self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf(
+                (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) == 0.0:
             return 0
 
         temp = 0.0
-        temp += self.derf((a_mu_i_plus_1 - x_i * beta_hat)/(math.sqrt(2.0 * self.sigmasq))) - self.derf((a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))
-        temp /= self.erf((a_mu_i_plus_1 - x_i*beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf((a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))
+        temp += self.derf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.derf(
+            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))
+        temp /= self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf(
+            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))
 
         return 2.0 * x_i * temp.item((0, 0))
-    
+
     def _likelihood_f(self, beta, mu_data):
         current_likelihood_result = 0.0
         for i in range(0, self.endogen.size):
@@ -76,20 +88,20 @@ class ApproximationGEMModel:
         current_likelihood_derivative_result = np.zeros(self.exogen[0].size)
 
         for i in range(0, self.endogen.size):
-            current_likelihood_derivative_result+= self._dprob_func(self.exogen[i], self.endogen[i], mu_data[i], beta)
+            current_likelihood_derivative_result += self._dprob_func(self.exogen[i], self.endogen[i], mu_data[i], beta)
 
-        return -0.5*current_likelihood_derivative_result
+        return -0.5 * current_likelihood_derivative_result
 
     def classify(self):
-        # TODO: Неправильная классификация
+        # TODO: неправильная классификация
         self.mu_data = np.zeros(self.endogen.size)
         for i in range(self.endogen.size):
-            if self.endogen[i]<self.intervals_left_bound:
-                self.mu_data[i]=0
-            elif self.endogen[i]>self.intervals_right_bound:
-                self.mu_data[i]= self._k_every_segment - 1
+            if self.endogen[i] < self.intervals_left_bound:
+                self.mu_data[i] = 0
+            elif self.endogen[i] > self.intervals_right_bound:
+                self.mu_data[i] = self._k_every_segment - 1
             else:
-                self.mu_data[i] = int(round(self.endogen[i]/self.interval_length)) + self._k_every_segment / 2
+                self.mu_data[i] = int(round(self.endogen[i] / self.interval_length)) + self._k_every_segment / 2
 
         print("classified")
 
@@ -98,13 +110,13 @@ class ApproximationGEMModel:
     def reclassify(self, delta):
         self.mu_data_reclassified = np.zeros(self.endogen.size)
         for i in range(0, self.endogen.size):
-            current_faced_classes={}
+            current_faced_classes = {}
             for j in range(0, self.endogen.size):
-                if np.linalg.norm(self.exogen[i]-self.exogen[j])<=delta:
+                if np.linalg.norm(self.exogen[i] - self.exogen[j]) <= delta:
                     if self.mu_data[j] in current_faced_classes:
-                        current_faced_classes[self.mu_data[j]]+=1
+                        current_faced_classes[self.mu_data[j]] += 1
                     else:
-                        current_faced_classes[self.mu_data[j]]=1
+                        current_faced_classes[self.mu_data[j]] = 1
 
             maximumfacedtimes = 1
             maximumfacedclass = self.mu_data[i]
@@ -121,6 +133,8 @@ class ApproximationGEMModel:
         return self
 
     def fit(self):
+        return self.fit_intercept()
+
         self.classify()
         self.reclassify(0.5)
 
@@ -135,9 +149,40 @@ class ApproximationGEMModel:
             delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
 
             for i in range(self.exogen[0].size):
-                delta_beta[i] = -dlikelihood_f_for_beta_hat_next[i] / (dlikelihood_f_for_beta_hat_next[i] - dlikelihood_f_for_beta_hat[i]) * (beta_hat_next[i]-beta_hat[i])
+                delta_beta[i] = -dlikelihood_f_for_beta_hat_next[i] / (
+                            dlikelihood_f_for_beta_hat_next[i] - dlikelihood_f_for_beta_hat[i]) * (
+                                            beta_hat_next[i] - beta_hat[i])
             beta_hat = beta_hat_next
-            beta_hat_next = beta_hat_next+delta_beta
+            beta_hat_next = beta_hat_next + delta_beta
+
+        return beta_hat_next
+
+    def fit_intercept(self):
+        self.classify()
+        self.reclassify(0.5)
+
+        print("fitting.....")
+
+        beta_hat = np.matrix(np.ones(self.exogen[0].size)).T
+        beta_hat_next = np.matrix(np.zeros(self.exogen[0].size)).T
+
+        while np.linalg.norm(self._dlikelihood_f(beta_hat_next, self.mu_data_reclassified)) > 0.1:
+            dlikelihood_f_for_beta_hat_next = self._dlikelihood_f(beta_hat_next, self.mu_data_reclassified)
+            delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
+
+            dlikelihood_derivative_approximation = np.zeros((self.exogen[0].size, self.exogen[0].size))
+
+            for i in range(self.exogen[0].size):
+                temp_beta = copy.deepcopy(beta_hat_next)
+                temp_beta[i] = beta_hat[i]
+                # FIXME: something bad with dimensions
+                dlikelihood_derivative_approximation[i] = ((self._dlikelihood_f(
+                    beta_hat_next, self.mu_data_reclassified) - self._dlikelihood_f(temp_beta, self.mu_data_reclassified)) / (beta_hat_next[i] - beta_hat[i])).A1
+
+            delta_beta = (- np.matrix(dlikelihood_f_for_beta_hat_next)[0] * np.linalg.inv(
+                dlikelihood_derivative_approximation))  # FIXME: something wrong here
+            beta_hat = beta_hat_next
+            beta_hat_next = beta_hat_next + delta_beta.T
 
         return beta_hat_next
 
@@ -154,9 +199,11 @@ class ApproximationGEMModel:
             dlikelihood_f_for_beta_hat_next = self._dlikelihood_f(beta_hat_next, self.mu_data)
             delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
             for i in range(self.exogen[0].size):
-                delta_beta[i] = -dlikelihood_f_for_beta_hat_next[i] / (dlikelihood_f_for_beta_hat_next[i] - dlikelihood_f_for_beta_hat[i]) * (beta_hat_next[i]-beta_hat[i])
+                delta_beta[i] = -dlikelihood_f_for_beta_hat_next[i] / (
+                            dlikelihood_f_for_beta_hat_next[i] - dlikelihood_f_for_beta_hat[i]) * (
+                                            beta_hat_next[i] - beta_hat[i])
             beta_hat = beta_hat_next
-            beta_hat_next = beta_hat_next+delta_beta
+            beta_hat_next = beta_hat_next + delta_beta
 
         return beta_hat_next
 
@@ -177,7 +224,7 @@ class ApproximationGEMModel:
         while np.equal(with_classification, ACCURATE_RESULT).all():
             temp_delta += 0.5
             with_classification = self._dlikelihood_f(ACCURATE_RESULT, self.mu_data_reclassified)
-    
+
         print(self._dlikelihood_f(ACCURATE_RESULT, self.mu_data_reclassified))
 
         return without_classification, with_classification
@@ -191,7 +238,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         self._np_freq_negative = None
         self._np_freq_positive_reclassified = None
         self._np_freq_negative_reclassified = None
-        self.METHOD_ACCURACY = 1e-5
+        self.METHOD_ACCURACY = 1e-1
 
     def _prob_func(self, x_i, y_i, mu_i, beta_hat, is_positive=True):
         a_mu_i_plus_1 = float('nan')
@@ -199,30 +246,37 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         if is_positive:
             if mu_i == self._k_every_segment:
-                return 0.5 * (1 + self.erf((self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
+                return 0.5 * (1 + self.erf(
+                    (self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
             a_mu_i_plus_1 = mu_i * self.interval_length
             a_mu_i = mu_i * self.interval_length - self.interval_length
         else:
             if mu_i == self._k_every_segment:
-                return 0.5 * (1 + self.erf((self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
+                return 0.5 * (1 + self.erf(
+                    (self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
             a_mu_i_plus_1 = -mu_i * self.interval_length
             a_mu_i = -mu_i * self.interval_length - self.interval_length
 
-        return 0.5 * (self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf((a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
+        return 0.5 * (self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf(
+            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
 
     def _dprob_func(self, x_i, y_i, mu_i, beta_hat, is_positive=True):
         a_mu_i_plus_1 = float('nan')
         a_mu_i = float('nan')
         if is_positive:
             if mu_i == self._k_every_segment:
-                return 2.0 * x_i * self.derf((self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) / (1.0 + self.erf((self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))).item((0, 0))
+                return 2.0 * x_i * self.derf(
+                    (self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) / (1.0 + self.erf(
+                    (self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))).item((0, 0))
 
             a_mu_i_plus_1 = mu_i * self.interval_length
             a_mu_i = mu_i * self.interval_length - self.interval_length
 
         else:
             if mu_i == self._k_every_segment:
-                return 2.0 * x_i * self.derf((self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) / (1.0 + self.erf((self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))).item((0, 0))
+                return 2.0 * x_i * self.derf(
+                    (self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) / (1.0 + self.erf(
+                    (self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))).item((0, 0))
 
             a_mu_i_plus_1 = -mu_i * self.interval_length
             a_mu_i = -mu_i * self.interval_length - self.interval_length
@@ -243,7 +297,8 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         for i in range(0, self.endogen.size):
             if mu_data[i] is not None:
-                current_likelihood_result += np.log(self._prob_func(self.exogen[i], self.endogen[i], mu_data[i], beta, is_positive))
+                current_likelihood_result += np.log(
+                    self._prob_func(self.exogen[i], self.endogen[i], mu_data[i], beta, is_positive))
 
         return current_likelihood_result
 
@@ -252,12 +307,18 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         for i in range(0, self.endogen.size):
             if mu_data[i] is not None:
-                current_likelihood_derivative_result += self._dprob_func(self.exogen[i], self.endogen[i], mu_data[i], beta, is_positive)
+                current_likelihood_derivative_result += self._dprob_func(self.exogen[i], self.endogen[i], mu_data[i],
+                                                                         beta, is_positive)
 
         return -0.5 * current_likelihood_derivative_result
 
     def full_cl_recl_dlikelihood_f(self, beta):
-        return self._dlikelihood_f(beta, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(beta, self._np_freq_negative_reclassified, is_positive=False)
+        return self._dlikelihood_f(beta, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(
+            beta, self._np_freq_negative_reclassified, is_positive=False)
+
+    def full_cl_dlikelihood_f(self, beta):
+        return self._dlikelihood_f(beta, self._np_freq_positive, is_positive=True) + self._dlikelihood_f(
+            beta, self._np_freq_negative, is_positive=False)
 
     def classify(self):
         self._np_freq_positive = [None for i in range(self.endogen.size)]
@@ -281,7 +342,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
             current_faced_classes_positive = {}
             current_faced_classes_negative = {}
             for j in range(0, self.endogen.size):
-                if np.linalg.norm(self.exogen[i]-self.exogen[j]) <= delta:
+                if np.linalg.norm(self.exogen[i] - self.exogen[j]) <= delta:
                     if self._np_freq_positive[j] is not None:
                         if self._np_freq_positive[j] in current_faced_classes_positive:
                             current_faced_classes_positive[self._np_freq_positive[j]] += 1
@@ -317,28 +378,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         print("reclassified")
 
     def fit(self):
-        self.classify()
-        self.reclassify(0.5)
-
-        print("fitting.....")
-
-        beta_hat = np.matrix(np.ones(self.exogen[0].size)).T
-        beta_hat_next = np.matrix(np.zeros(self.exogen[0].size)).T
-
-        # FIXME: something bad with numerical method
-        while np.linalg.norm(self._dlikelihood_f(beta_hat_next, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(beta_hat_next, self._np_freq_negative_reclassified, is_positive=False)) >= self.METHOD_ACCURACY:
-            dlikelihood_f_for_beta_hat = self._dlikelihood_f(beta_hat, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(beta_hat, self._np_freq_negative_reclassified, is_positive=False)
-            dlikelihood_f_for_beta_hat_next = self._dlikelihood_f(beta_hat_next, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(beta_hat_next, self._np_freq_negative_reclassified, is_positive=False)
-            delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
-
-            for i in range(self.exogen[0].size):
-                delta_beta[i] = -dlikelihood_f_for_beta_hat_next[i] / (
-                            dlikelihood_f_for_beta_hat_next[i] - dlikelihood_f_for_beta_hat[i]) * (
-                                            beta_hat_next[i] - beta_hat[i])
-            beta_hat = beta_hat_next
-            beta_hat_next = beta_hat_next + delta_beta
-
-        return beta_hat_next
+        return self.fit_intercept()
 
     def fit_intercept(self):
         self.classify()
@@ -349,7 +389,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         beta_hat = np.matrix(np.ones(self.exogen[0].size)).T
         beta_hat_next = np.matrix(np.zeros(self.exogen[0].size)).T
 
-        while np.linalg.norm(self.full_cl_recl_dlikelihood_f(beta_hat_next)) >= self.METHOD_ACCURACY:
+        while np.linalg.norm(self.full_cl_recl_dlikelihood_f(beta_hat_next)) > self.METHOD_ACCURACY:
             dlikelihood_f_for_beta_hat_next = self.full_cl_recl_dlikelihood_f(beta_hat_next)
             delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
 
@@ -359,11 +399,41 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
                 temp_beta = copy.deepcopy(beta_hat_next)
                 temp_beta[i] = beta_hat[i]
                 # FIXME: something bad with dimensions
-                dlikelihood_derivative_approximation = (self.full_cl_recl_dlikelihood_f(beta_hat_next) - self.full_cl_recl_dlikelihood_f(temp_beta)) / (beta_hat_next[i] - beta_hat[i])
+                dlikelihood_derivative_approximation[i] = ((self.full_cl_recl_dlikelihood_f(
+                    beta_hat_next) - self.full_cl_recl_dlikelihood_f(temp_beta)) / (beta_hat_next[i] - beta_hat[i])).A1
 
-            delta_beta = - dlikelihood_f_for_beta_hat_next * np.linalg.inv(dlikelihood_derivative_approximation)
+            delta_beta = (- np.matrix(dlikelihood_f_for_beta_hat_next)[0] * np.linalg.inv(
+                dlikelihood_derivative_approximation))  # FIXME: something wrong here
             beta_hat = beta_hat_next
-            beta_hat_next = beta_hat_next + delta_beta
+            beta_hat_next = beta_hat_next + delta_beta.T
+
+        return beta_hat_next
+
+    def fit_without_reclassification(self):
+        self.classify()
+
+        print("fitting.....")
+
+        beta_hat = np.matrix(np.ones(self.exogen[0].size)).T
+        beta_hat_next = np.matrix([100.0 for _ in range(self.exogen[0].size)]).T
+
+        while np.linalg.norm(self.full_cl_dlikelihood_f(beta_hat_next)) > self.METHOD_ACCURACY:
+            dlikelihood_f_for_beta_hat_next = self.full_cl_dlikelihood_f(beta_hat_next)
+            delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
+
+            dlikelihood_derivative_approximation = np.zeros((self.exogen[0].size, self.exogen[0].size))
+
+            for i in range(self.exogen[0].size):
+                temp_beta = copy.deepcopy(beta_hat_next)
+                temp_beta[i] = beta_hat[i]
+                # FIXME: something bad with dimensions
+                dlikelihood_derivative_approximation[i] = ((self.full_cl_dlikelihood_f(
+                    beta_hat_next) - self.full_cl_dlikelihood_f(temp_beta)) / (beta_hat_next[i] - beta_hat[i])).A1
+
+            delta_beta = (- np.matrix(dlikelihood_f_for_beta_hat_next)[0] * np.linalg.inv(
+                dlikelihood_derivative_approximation.T))  # FIXME: something wrong here
+            beta_hat = beta_hat_next
+            beta_hat_next = beta_hat_next + delta_beta.T
 
         return beta_hat_next
 
@@ -383,7 +453,7 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
     for i in range(0, regression_sample_quintity):
         if random() > regression_outlier_percentage / 100:
             x_points[i] = np.append(np.ones(1), np.random.uniform(-5, 5, size=len(regressionParameters) - 1))
-            y_points[i] = (x_points[i]*regressionParameters) + np.random.normal(0, 4)
+            y_points[i] = (x_points[i] * regressionParameters) + np.random.normal(0, 4)
         else:
             x_points[i] = np.append(np.ones(1), np.random.uniform(-5, 5, size=len(regressionParameters) - 1))
             y_points[i] = np.random.normal(100.0, 15.0, size=1)
@@ -393,11 +463,11 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
 
 x_points, y_points = modulateRegression(100, OUTLIER_PERCENTAGE)
 
-APPROXIMATION_MODEL = GEM(x_points,y_points)
-print(APPROXIMATION_MODEL.fit_intercept())
+APPROXIMATION_MODEL = GEM(x_points, y_points)
+print("GEM: {}".format(APPROXIMATION_MODEL.fit()))
 
 # APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
 # tempHundredParams = APPROXIMATION_MODEL.fit().params
 
-# APPROXIMATION_MODEL = sm.OLS(y_points,x_points, M=sm.robust.norms.HuberT())
-# print(APPROXIMATION_MODEL.fit().params)
+APPROXIMATION_MODEL = sm.OLS(y_points, x_points, M=sm.robust.norms.HuberT())
+print("OLS: {}".format(APPROXIMATION_MODEL.fit().params))

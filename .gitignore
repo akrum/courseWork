@@ -7,3 +7,4 @@
 *.xml
 *.bcf
 *.out
+.vscode/settings.json
