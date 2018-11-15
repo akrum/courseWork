@@ -2,9 +2,10 @@ import random
 
 import numpy as np
 import requests
-import signal
 
 from py_grouping_estimates import groupingEstimates
+from multiprocessing import Process
+
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
@@ -31,16 +32,13 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
     return _x_points, _y_points
 
 
-signal.signal(signal.SIGALRM, alarm_handler)
-while True:
+def fit_and_send_res():
     x_points, y_points = modulateRegression(100, OUTLIER_PERCENTAGE)
     APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
 
     try:
-        signal.alarm(SECONDS_TIMEOUT)
 
         result = "GEM {}".format(APPROXIMATION_MODEL.fit())
-        signal.alarm(0)
 
         data_for_req = {
             "run_res": result
@@ -52,3 +50,12 @@ while True:
         print("Exception occurred: %s" % e)
     finally:
         pass
+
+
+while True:
+    action_process = Process(target=fit_and_send_res)
+
+    action_process.start()
+    action_process.join(timeout=SECONDS_TIMEOUT)
+
+    action_process.terminate()
