@@ -1,10 +1,10 @@
-import numpy as np
-from random import random
+import copy
 import math
 import threading
-import copy
-import statsmodels.api as sm
 import warnings
+from random import random
+
+import numpy as np
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
@@ -238,7 +238,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         self._np_freq_negative = None
         self._np_freq_positive_reclassified = None
         self._np_freq_negative_reclassified = None
-        self.METHOD_ACCURACY = 1e-1
+        self.METHOD_ACCURACY = 1e-7
 
     def _prob_func(self, x_i, y_i, mu_i, beta_hat, is_positive=True):
         a_mu_i_plus_1 = float('nan')
@@ -389,7 +389,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         beta_hat = np.matrix(np.ones(self.exogen[0].size)).T
         beta_hat_next = np.matrix(np.zeros(self.exogen[0].size)).T
 
-        while np.linalg.norm(self.full_cl_recl_dlikelihood_f(beta_hat_next)) > self.METHOD_ACCURACY:
+        while np.linalg.norm(beta_hat - beta_hat_next) > self.METHOD_ACCURACY:
             dlikelihood_f_for_beta_hat_next = self.full_cl_recl_dlikelihood_f(beta_hat_next)
             delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
 
@@ -445,29 +445,4 @@ def GEM(exogen_data, endogen_data, *args):
     return ApproximationGEMModelRedesigned(exogen_data, endogen_data)
 
 
-def modulateRegression(regression_sample_quintity, regression_outlier_percentage):
-    regressionParameters = ACCURATE_RESULT
-    x_points = np.zeros(shape=[regression_sample_quintity, len(regressionParameters)])
-    y_points = np.zeros(shape=regression_sample_quintity)
 
-    for i in range(0, regression_sample_quintity):
-        if random() > regression_outlier_percentage / 100:
-            x_points[i] = np.append(np.ones(1), np.random.uniform(-5, 5, size=len(regressionParameters) - 1))
-            y_points[i] = (x_points[i] * regressionParameters) + np.random.normal(0, 4)
-        else:
-            x_points[i] = np.append(np.ones(1), np.random.uniform(-5, 5, size=len(regressionParameters) - 1))
-            y_points[i] = np.random.normal(100.0, 15.0, size=1)
-
-    return x_points, y_points
-
-
-x_points, y_points = modulateRegression(100, OUTLIER_PERCENTAGE)
-
-APPROXIMATION_MODEL = GEM(x_points, y_points)
-print("GEM: {}".format(APPROXIMATION_MODEL.fit()))
-
-# APPROXIMATION_MODEL = sm.RLM(y_points,x_points, M=sm.robust.norms.HuberT())
-# tempHundredParams = APPROXIMATION_MODEL.fit().params
-
-APPROXIMATION_MODEL = sm.OLS(y_points, x_points, M=sm.robust.norms.HuberT())
-print("OLS: {}".format(APPROXIMATION_MODEL.fit().params))
