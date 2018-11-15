@@ -26,7 +26,7 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
 
 
 while True:
-    x_points, y_points = modulateRegression(random.randrange(100, 500), OUTLIER_PERCENTAGE)
+    x_points, y_points = modulateRegression(100, OUTLIER_PERCENTAGE)
     APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
 
     try:
