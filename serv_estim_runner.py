@@ -52,10 +52,11 @@ def fit_and_send_res():
         pass
 
 
-while True:
-    action_process = Process(target=fit_and_send_res)
+if __name__ == "__main__":
+    while True:
+        action_process = Process(target=fit_and_send_res)
 
-    action_process.start()
-    action_process.join(timeout=SECONDS_TIMEOUT)
+        action_process.start()
+        action_process.join(timeout=SECONDS_TIMEOUT)
 
-    action_process.terminate()
+        action_process.terminate()
