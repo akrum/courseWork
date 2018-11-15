@@ -26,17 +26,17 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
 
 
 while True:
-    x_points, y_points = modulateRegression(random.randrange(100, 1000), OUTLIER_PERCENTAGE)
+    x_points, y_points = modulateRegression(random.randrange(100, 500), OUTLIER_PERCENTAGE)
     APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
 
     try:
-        result = "GEM: {}".format(APPROXIMATION_MODEL.fit())
+        result = "GEM {}".format(APPROXIMATION_MODEL.fit())
         data_for_req = {
             "run_res": result
         }
         req = requests.post(url='https://py-cw-results.herokuapp.com/pushRunResult', json=data_for_req)
-        print("%s%x%x" % (result, req.status_code, req.reason))
+        print("%s: %s: %s:" % (result, req.status_code, req.reason))
     except Exception as e:
-        print(e)
+        print("Exception occurred: %s" % e)
     finally:
         pass
