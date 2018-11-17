@@ -370,7 +370,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
                     maximumfacedtimes_negative = current_faced_classes_negative[key]
                     maximumfacedclass_negative = key
 
-            if maximumfacedclass_positive > maximumfacedtimes_negative:
+            if maximumfacedtimes_positive > maximumfacedtimes_negative:
                 self._np_freq_positive_reclassified[i] = maximumfacedclass_positive
             else:
                 self._np_freq_negative_reclassified[i] = maximumfacedclass_negative
