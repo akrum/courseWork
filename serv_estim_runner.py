@@ -7,7 +7,7 @@ from py_grouping_estimates import groupingEstimates
 from multiprocessing import Process
 
 
-ACCURATE_RESULT = np.matrix([90, 4]).T
+ACCURATE_RESULT = np.matrix([90, 4, -20]).T
 OUTLIER_PERCENTAGE = 8.0
 SECONDS_TIMEOUT = 60 * 5
 
