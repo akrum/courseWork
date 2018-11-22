@@ -171,12 +171,12 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         t_beta_hat = np.matrix([80.0, 0.0]).T
         t_beta_hat_next = np.matrix([100.0, 10.0]).T
 
-        beta_hats_left_bound = np.matrix([-500.0, -500.0]).T
-        beta_hats_right_bound = np.matrix([500.0, 500.0]).T
+        beta_hats_left_bound = np.matrix([-100.0 for _ in range(self.exogen[0].size)]).T
+        beta_hats_right_bound = np.matrix([100.0 for _ in range(self.exogen[0].size)]).T
 
         fit_intercept_results = []
-        loop_indentantion_value = 50.0
-        THREAD_SECONDS_TIMEOUT = 5.0
+        loop_indentantion_value = 10.0
+        THREAD_SECONDS_TIMEOUT = 20.0
 
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
