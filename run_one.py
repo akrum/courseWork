@@ -4,7 +4,7 @@ import numpy as np
 
 from py_grouping_estimates import groupingEstimates
 
-ACCURATE_RESULT = np.matrix([90, 4, 20]).T
+ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
 SECONDS_TIMEOUT = 60 * 5
 
