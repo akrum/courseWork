@@ -93,6 +93,10 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         return -0.5 * current_likelihood_derivative_result
 
+    def full_cl_recl_likelihood_f(self, beta):
+        return self._likelihood_f(beta, self._np_freq_positive_reclassified, is_positive=True) + self._likelihood_f(
+            beta, self._np_freq_negative_reclassified, is_positive=False)
+
     def full_cl_recl_dlikelihood_f(self, beta):
         return self._dlikelihood_f(beta, self._np_freq_positive_reclassified, is_positive=True) + self._dlikelihood_f(
             beta, self._np_freq_negative_reclassified, is_positive=False)
@@ -166,7 +170,44 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         t_beta_hat = np.matrix([80.0, 0.0]).T
         t_beta_hat_next = np.matrix([100.0, 10.0]).T
-        return self.fit_intercept(beta_hat=t_beta_hat, beta_hat_next=t_beta_hat_next)
+
+        beta_hats_left_bound = np.matrix([-500.0, -500.0]).T
+        beta_hats_right_bound = np.matrix([500.0, 500.0]).T
+
+        fit_intercept_results = []
+        loop_indentantion_value = 50.0
+        THREAD_SECONDS_TIMEOUT = 5.0
+
+        def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
+            t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
+            fit_intercept_results.append(t_result)
+
+        while (beta_hats_left_bound < beta_hats_right_bound).all():
+            created_threads = []
+            for i in range(self.exogen[0].size):
+                beta_hats_left_bound[i] += loop_indentantion_value
+                for j in range(self.exogen[0].size):
+                    beta_hats_right_bound[i] -= loop_indentantion_value
+                    created_threads.append(threading.Thread(target=fit_intercept_and_add_to_results,
+                                                            args=(np.matrix.copy(beta_hats_left_bound),
+                                                                  np.matrix.copy(beta_hats_right_bound))))
+
+            for thread in created_threads:
+                thread.start()
+            for thread in created_threads:
+                thread.join(timeout=THREAD_SECONDS_TIMEOUT)
+
+        maximum_likelihood_res = 0.0
+        result_to_return = np.matrix(np.zeros(self.exogen[0].size)).T
+
+        for result in fit_intercept_results:
+            t_likelihood_res = self.full_cl_recl_likelihood_f(result)
+            if maximum_likelihood_res < t_likelihood_res:
+                maximum_likelihood_res = t_likelihood_res
+                result_to_return = result
+
+        # return self.fit_intercept(beta_hat=t_beta_hat, beta_hat_next=t_beta_hat_next)
+        return result_to_return
 
     def fit_intercept(self, beta_hat=None, beta_hat_next=None):
         if beta_hat is None:

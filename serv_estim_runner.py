@@ -9,7 +9,7 @@ from multiprocessing import Process
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
-SECONDS_TIMEOUT = 60 * 5
+SECONDS_TIMEOUT = 60 * 10
 
 
 def alarm_handler(signum, frame):
