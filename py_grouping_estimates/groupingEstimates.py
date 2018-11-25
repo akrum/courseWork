@@ -1,6 +1,6 @@
 import copy
 import math
-from multiprocessing import Process
+from threading import Thread
 
 import numpy as np
 
@@ -77,8 +77,21 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         for i in range(0, self.endogen.size):
             if mu_data[i] is not None:
-                current_likelihood_result += np.log(
+                temp_log_value = np.log(
                     self._prob_func(self.exogen[i], self.endogen[i], mu_data[i], beta, is_positive))
+                if (np.isnan(temp_log_value) == False).all():
+                    current_likelihood_result += temp_log_value
+
+        return current_likelihood_result
+
+    def _likelihood_f_without_log(self, beta, mu_data, is_positive=True):
+        current_likelihood_result = 0.0
+
+        for i in range(0, self.endogen.size):
+            if mu_data[i] is not None:
+                temp_value = self._prob_func(self.exogen[i], self.endogen[i], mu_data[i], beta, is_positive)
+                if (np.isnan(temp_value) == False).all():
+                    current_likelihood_result *= temp_value
 
         return current_likelihood_result
 
@@ -93,7 +106,8 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         return -0.5 * current_likelihood_derivative_result
 
     def full_cl_recl_likelihood_f(self, beta):
-        return self._likelihood_f(beta, self._np_freq_positive_reclassified, is_positive=True) + self._likelihood_f(
+        return self._likelihood_f_without_log(beta, self._np_freq_positive_reclassified,
+                                              is_positive=True) + self._likelihood_f_without_log(
             beta, self._np_freq_negative_reclassified, is_positive=False)
 
     def full_cl_recl_dlikelihood_f(self, beta):
@@ -205,28 +219,32 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
             else:
                 raise Exception("got nan")
 
-        created_processes = []
+        created_threads = []
         for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
             beta_right = beta_left + right_bound_indent
 
-            calculus_process = Process(target=fit_intercept_and_add_to_results, args=(np.matrix.copy(beta_left),
-                                                                                              np.matrix.copy(
-                                                                                                  beta_right),))
-            created_processes.append(calculus_process)
-            calculus_process.start()
+            calculus_thread = Thread(target=fit_intercept_and_add_to_results, args=(np.matrix.copy(beta_left),
+                                                                                    np.matrix.copy(
+                                                                                        beta_right),))
+            created_threads.append(calculus_thread)
+            calculus_thread.start()
 
-        for thread in created_processes:
+        for thread in created_threads:
             thread.join(timeout=thread_seconds_timeout)
-            thread.terminate()
 
-        maximum_likelihood_res = 0.0
-        result_to_return = np.matrix(np.zeros(self.exogen[0].size)).T
+        maximum_likelihood_res = None
+        result_to_return = np.matrix([None for _ in range(self.exogen[0].size)]).T
 
         print("Possible betas: ")
         print(fit_intercept_results)
 
         for result in fit_intercept_results:
-            t_likelihood_res = self.full_cl_recl_likelihood_f(result)
+            t_likelihood_res = self.full_cl_recl_likelihood_f()
+            # print(t_likelihood_res)
+            if maximum_likelihood_res is None:
+                maximum_likelihood_res = t_likelihood_res
+                result_to_return = result
+
             if maximum_likelihood_res < t_likelihood_res:
                 maximum_likelihood_res = t_likelihood_res
                 result_to_return = result

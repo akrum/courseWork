@@ -38,3 +38,4 @@ def fit_and_print():
 
 if __name__ == "__main__":
     fit_and_print()
+    quit()
