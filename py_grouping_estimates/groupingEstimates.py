@@ -1,11 +1,9 @@
 import copy
 import math
 import threading
-import warnings
-from py_grouping_estimates.groupingEstimates_old import ApproximationGEMModel
-from copy import deepcopy
-
 import numpy as np
+
+from py_grouping_estimates.groupingEstimates_old import ApproximationGEMModel
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
@@ -171,31 +169,49 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         t_beta_hat = np.matrix([80.0, 0.0]).T
         t_beta_hat_next = np.matrix([100.0, 10.0]).T
 
-        beta_hats_left_bound = np.matrix([-100.0 for _ in range(self.exogen[0].size)]).T
-        beta_hats_right_bound = np.matrix([100.0 for _ in range(self.exogen[0].size)]).T
+        # return self.fit_intercept(beta_hat=t_beta_hat, beta_hat_next=t_beta_hat_next)
+
+        right_bound_indent = np.matrix([10.0 for _ in range(self.exogen[0].size)]).T
+        loop_indentantion_value = 10.0
+        loop_end_bound = np.matrix([110.0 for _ in range(self.exogen[0].size)]).T
+
+        beta_hats_left_bound = np.matrix([-110.0 for _ in range(self.exogen[0].size)]).T
+
+        def recursive_beta_generator(index, previous_step_beta):
+            assert (index <= self.exogen[0].size)
+
+            beta_next = np.matrix.copy(previous_step_beta)
+
+            while ((beta_next + right_bound_indent) < loop_end_bound).all():
+                if index == self.exogen[0].size:
+                    yield beta_next
+                    break
+
+                beta_next[index] += loop_indentantion_value
+
+                next_index_generator = recursive_beta_generator(index + 1, beta_next)
+                for item in next_index_generator:
+                    yield item
 
         fit_intercept_results = []
-        loop_indentantion_value = 10.0
-        THREAD_SECONDS_TIMEOUT = 20.0
+        thread_seconds_timeout = 10.0
 
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
             fit_intercept_results.append(t_result)
 
-        while (beta_hats_left_bound < beta_hats_right_bound).all():
-            created_threads = []
-            for i in range(self.exogen[0].size):
-                beta_hats_left_bound[i] += loop_indentantion_value
-                for j in range(self.exogen[0].size):
-                    beta_hats_right_bound[i] -= loop_indentantion_value
-                    created_threads.append(threading.Thread(target=fit_intercept_and_add_to_results,
-                                                            args=(np.matrix.copy(beta_hats_left_bound),
-                                                                  np.matrix.copy(beta_hats_right_bound))))
+        created_threads = []
+        for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
+            beta_right = beta_left + right_bound_indent
 
-            for thread in created_threads:
-                thread.start()
-            for thread in created_threads:
-                thread.join(timeout=THREAD_SECONDS_TIMEOUT)
+            calculus_thread = threading.Thread(target=fit_intercept_and_add_to_results, args=(np.matrix.copy(beta_left),
+                                                                                              np.matrix.copy(
+                                                                                                  beta_right)))
+            created_threads.append(calculus_thread)
+            calculus_thread.start()
+
+        for thread in created_threads:
+            thread.join(timeout=thread_seconds_timeout)
 
         maximum_likelihood_res = 0.0
         result_to_return = np.matrix(np.zeros(self.exogen[0].size)).T
@@ -206,7 +222,6 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
                 maximum_likelihood_res = t_likelihood_res
                 result_to_return = result
 
-        # return self.fit_intercept(beta_hat=t_beta_hat, beta_hat_next=t_beta_hat_next)
         return result_to_return
 
     def fit_intercept(self, beta_hat=None, beta_hat_next=None):
