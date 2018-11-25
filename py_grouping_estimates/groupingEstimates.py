@@ -172,7 +172,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         # return self.fit_intercept(beta_hat=t_beta_hat, beta_hat_next=t_beta_hat_next)
 
         right_bound_indent = np.matrix([10.0 for _ in range(self.exogen[0].size)]).T
-        loop_indentantion_value = 10.0
+        loop_indentantion_value = 20.0
         loop_end_bound = np.matrix([110.0 for _ in range(self.exogen[0].size)]).T
 
         beta_hats_left_bound = np.matrix([-110.0 for _ in range(self.exogen[0].size)]).T
@@ -194,11 +194,15 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
                     yield item
 
         fit_intercept_results = []
-        thread_seconds_timeout = 10.0
+        thread_seconds_timeout = 7.0
 
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
-            fit_intercept_results.append(t_result)
+            if (np.isnan(t_result) == False).all():
+                print("added value to list %s" % t_result)
+                fit_intercept_results.append(t_result)
+            else:
+                print("Error: got nan")
 
         created_threads = []
         for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
@@ -215,6 +219,9 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         maximum_likelihood_res = 0.0
         result_to_return = np.matrix(np.zeros(self.exogen[0].size)).T
+
+        print("Possible betas: ")
+        print(fit_intercept_results)
 
         for result in fit_intercept_results:
             t_likelihood_res = self.full_cl_recl_likelihood_f(result)
