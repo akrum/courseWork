@@ -200,7 +200,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
             if (np.isnan(t_result) == False).all():
-                # print("added value to list %s" % t_result)
+                print("added value to list %s" % t_result)
                 fit_intercept_results.append(t_result)
             else:
                 raise Exception("got nan")
@@ -211,7 +211,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
             calculus_process = Process(target=fit_intercept_and_add_to_results, args=(np.matrix.copy(beta_left),
                                                                                               np.matrix.copy(
-                                                                                                  beta_right)))
+                                                                                                  beta_right),))
             created_processes.append(calculus_process)
             calculus_process.start()
 
