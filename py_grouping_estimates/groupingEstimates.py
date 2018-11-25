@@ -239,7 +239,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         print(fit_intercept_results)
 
         for result in fit_intercept_results:
-            t_likelihood_res = self.full_cl_recl_likelihood_f()
+            t_likelihood_res = self.full_cl_recl_likelihood_f(result)
             # print(t_likelihood_res)
             if maximum_likelihood_res is None:
                 maximum_likelihood_res = t_likelihood_res
