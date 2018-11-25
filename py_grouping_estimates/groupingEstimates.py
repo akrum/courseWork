@@ -200,10 +200,10 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
             if (np.isnan(t_result) == False).all():
-                print("added value to list %s" % t_result)
+                # print("added value to list %s" % t_result)
                 fit_intercept_results.append(t_result)
             else:
-                print("Error: got nan")
+                raise Exception("got nan")
 
         created_processes = []
         for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
