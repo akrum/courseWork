@@ -1,6 +1,7 @@
 import copy
 import math
-import threading
+from multiprocessing import Process
+
 import numpy as np
 
 from py_grouping_estimates.groupingEstimates_old import ApproximationGEMModel
@@ -173,9 +174,9 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         right_bound_indent = np.matrix([10.0 for _ in range(self.exogen[0].size)]).T
         loop_indentantion_value = 20.0
-        loop_end_bound = np.matrix([110.0 for _ in range(self.exogen[0].size)]).T
+        loop_end_bound = np.matrix([100.0 for _ in range(self.exogen[0].size)]).T
 
-        beta_hats_left_bound = np.matrix([-110.0 for _ in range(self.exogen[0].size)]).T
+        beta_hats_left_bound = np.matrix([-20.0 for _ in range(self.exogen[0].size)]).T
 
         def recursive_beta_generator(index, previous_step_beta):
             assert (index <= self.exogen[0].size)
@@ -194,7 +195,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
                     yield item
 
         fit_intercept_results = []
-        thread_seconds_timeout = 7.0
+        thread_seconds_timeout = 10.0
 
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
@@ -204,18 +205,19 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
             else:
                 print("Error: got nan")
 
-        created_threads = []
+        created_processes = []
         for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
             beta_right = beta_left + right_bound_indent
 
-            calculus_thread = threading.Thread(target=fit_intercept_and_add_to_results, args=(np.matrix.copy(beta_left),
+            calculus_process = Process(target=fit_intercept_and_add_to_results, args=(np.matrix.copy(beta_left),
                                                                                               np.matrix.copy(
                                                                                                   beta_right)))
-            created_threads.append(calculus_thread)
-            calculus_thread.start()
+            created_processes.append(calculus_process)
+            calculus_process.start()
 
-        for thread in created_threads:
+        for thread in created_processes:
             thread.join(timeout=thread_seconds_timeout)
+            thread.terminate()
 
         maximum_likelihood_res = 0.0
         result_to_return = np.matrix(np.zeros(self.exogen[0].size)).T
