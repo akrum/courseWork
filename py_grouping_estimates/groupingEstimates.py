@@ -1,6 +1,7 @@
 import copy
 import math
 from threading import Thread
+from py_grouping_estimates.GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
 
 import numpy as np
 
@@ -10,66 +11,79 @@ ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
 
 
-class ApproximationGEMModelRedesigned(ApproximationGEMModel):
+class ApproximationGEMModelRedesigned():
     def __init__(self, exogen_data, endogen_data):
-        super(ApproximationGEMModelRedesigned, self).__init__(exogen_data, endogen_data)
-        self._segment_count_in_every_array = self._k_every_segment
+        self.exogen = exogen_data
+        self.endogen = endogen_data
         self._np_freq_positive = None
         self._np_freq_negative = None
         self._np_freq_positive_reclassified = None
         self._np_freq_negative_reclassified = None
-        self.METHOD_ACCURACY = 1e-7
+
+    def erf(self, value):
+        return math.sqrt(1.0 - math.exp(
+            (-1.0 * value * value) * (4.0 / math.pi + Defines.a * value * value) / (1.0 + Defines.a * value * value)))
+
+    def derf(self, value):
+
+        temp = math.exp((-1 * value * value) * (4 / math.pi + Defines.a * value * value) / (1 + Defines.a * value * value))
+        temp *= ((-2 * value + 2 * Defines.a * value * value * value) * (4 / math.pi + Defines.a * value * value) / (
+                1 + Defines.a * value * value) - 2 * Defines.a * value * value * value / (1 + Defines.a * value * value))
+        temp /= 2 * math.sqrt(1 - math.exp(
+            (-1 * value * value) * (4 / math.pi + Defines.a * value * value) / (1 + Defines.a * value * value)))
+
+        return temp
 
     def _prob_func(self, x_i, y_i, mu_i, beta_hat, is_positive=True):
         a_mu_i_plus_1 = float('nan')
         a_mu_i = float('nan')
 
         if is_positive:
-            if mu_i == self._k_every_segment:
+            if mu_i == Defines.K_EVERY_SEGMENT:
                 return 0.5 * (1 + self.erf(
-                    (self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
-            a_mu_i_plus_1 = mu_i * self.interval_length
-            a_mu_i = mu_i * self.interval_length - self.interval_length
+                    (Defines.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))))
+            a_mu_i_plus_1 = mu_i * Defines.INTERVAL_LENGTH
+            a_mu_i = mu_i * Defines.INTERVAL_LENGTH - Defines.INTERVAL_LENGTH
         else:
-            if mu_i == self._k_every_segment:
+            if mu_i == Defines.K_EVERY_SEGMENT:
                 return 0.5 * (1 + self.erf(
-                    (self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
-            a_mu_i_plus_1 = -mu_i * self.interval_length
-            a_mu_i = -mu_i * self.interval_length - self.interval_length
+                    (Defines.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))))
+            a_mu_i_plus_1 = -mu_i * Defines.INTERVAL_LENGTH
+            a_mu_i = -mu_i * Defines.INTERVAL_LENGTH - Defines.INTERVAL_LENGTH
 
-        return 0.5 * (self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf(
-            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))))
+        return 0.5 * (self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * Defines.sigmasq))) - self.erf(
+            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))))
 
     def _dprob_func(self, x_i, y_i, mu_i, beta_hat, is_positive=True):
         a_mu_i_plus_1 = float('nan')
         a_mu_i = float('nan')
         if is_positive:
-            if mu_i == self._k_every_segment:
+            if mu_i == Defines.K_EVERY_SEGMENT:
                 return 2.0 * x_i * self.derf(
-                    (self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) / (1.0 + self.erf(
-                    (self.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))).item((0, 0))
+                    (Defines.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))) / (1.0 + self.erf(
+                    (Defines.intervals_right_bound - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ)))).item((0, 0))
 
-            a_mu_i_plus_1 = mu_i * self.interval_length
-            a_mu_i = mu_i * self.interval_length - self.interval_length
+            a_mu_i_plus_1 = mu_i * Defines.INTERVAL_LENGTH
+            a_mu_i = mu_i * Defines.INTERVAL_LENGTH - Defines.INTERVAL_LENGTH
 
         else:
-            if mu_i == self._k_every_segment:
+            if mu_i == Defines.K_EVERY_SEGMENT:
                 return 2.0 * x_i * self.derf(
-                    (self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) / (1.0 + self.erf(
-                    (self.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))).item((0, 0))
+                    (Defines.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))) / (1.0 + self.erf(
+                    (Defines.intervals_left_bound - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ)))).item((0, 0))
 
-            a_mu_i_plus_1 = -mu_i * self.interval_length
-            a_mu_i = -mu_i * self.interval_length - self.interval_length
+            a_mu_i_plus_1 = -mu_i * Defines.INTERVAL_LENGTH
+            a_mu_i = -mu_i * Defines.INTERVAL_LENGTH - Defines.INTERVAL_LENGTH
 
-        if self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf(
-                (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) == 0.0:
+        if self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))) - self.erf(
+                (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))) == 0.0:
             return 0
 
         temp = 0.0
-        temp += self.derf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.derf(
-            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))
-        temp /= self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq))) - self.erf(
-            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * self.sigmasq)))
+        temp += self.derf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))) - self.derf(
+            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ)))
+        temp /= self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))) - self.erf(
+            (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ)))
         return 2.0 * x_i * temp.item((0, 0))
 
     def _likelihood_f(self, beta, mu_data, is_positive=True):
@@ -124,9 +138,9 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         for i in range(self.endogen.size):
             if self.endogen[i] >= 0:
-                self._np_freq_positive[i] = int(self.endogen[i] / self.interval_length)
+                self._np_freq_positive[i] = int(self.endogen[i] / Defines.INTERVAL_LENGTH)
             else:
-                self._np_freq_negative[i] = int(abs(self.endogen[i]) / self.interval_length)
+                self._np_freq_negative[i] = int(abs(self.endogen[i]) / Defines.INTERVAL_LENGTH)
 
         print("classified")
 
@@ -186,11 +200,11 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
 
         # return self.fit_intercept(beta_hat=t_beta_hat, beta_hat_next=t_beta_hat_next)
 
-        right_bound_indent = np.matrix([10.0 for _ in range(self.exogen[0].size)]).T
-        loop_indentantion_value = 20.0
-        loop_end_bound = np.matrix([100.0 for _ in range(self.exogen[0].size)]).T
+        right_bound_indent = Defines.right_bound_fit_indent(self.exogen[0].size)
+        loop_indentantion_value = Defines.LEFT_BOUND_EVERY_VAR_INDENT
+        loop_end_bound = Defines.fit_loop_stop_value(self.exogen[0].size)
 
-        beta_hats_left_bound = np.matrix([-20.0 for _ in range(self.exogen[0].size)]).T
+        beta_hats_left_bound = Defines.left_bound_fit_init(self.exogen[0].size)
 
         def recursive_beta_generator(index, previous_step_beta):
             assert (index <= self.exogen[0].size)
@@ -209,7 +223,6 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
                     yield item
 
         fit_intercept_results = []
-        thread_seconds_timeout = 10.0
 
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
@@ -230,7 +243,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
             calculus_thread.start()
 
         for thread in created_threads:
-            thread.join(timeout=thread_seconds_timeout)
+            thread.join(timeout=Defines.THREAD_JOIN_TIMEOUT)
 
         maximum_likelihood_res = None
         result_to_return = np.matrix([None for _ in range(self.exogen[0].size)]).T
@@ -258,7 +271,7 @@ class ApproximationGEMModelRedesigned(ApproximationGEMModel):
         if beta_hat_next is None:
             beta_hat_next = np.matrix(np.ones(self.exogen[0].size)).T
 
-        while np.linalg.norm(beta_hat - beta_hat_next) > self.METHOD_ACCURACY:
+        while np.linalg.norm(beta_hat - beta_hat_next) > Defines.METHOD_ACCURACY:
             dlikelihood_f_for_beta_hat_next = self.full_cl_recl_dlikelihood_f(beta_hat_next)
             delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
 
