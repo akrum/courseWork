@@ -198,7 +198,15 @@ class ApproximationGEMModelRedesigned():
         t_beta_hat = np.matrix([80.0, 0.0]).T
         t_beta_hat_next = np.matrix([100.0, 10.0]).T
 
+        #############
+        # FOR DEBUG #
+        #############
+
         # return self.fit_intercept(beta_hat=t_beta_hat, beta_hat_next=t_beta_hat_next)
+
+        #############
+        # FOR DEBUG #
+        #############
 
         right_bound_indent = Defines.right_bound_fit_indent(self.exogen[0].size)
         loop_indentantion_value = Defines.LEFT_BOUND_EVERY_VAR_INDENT
@@ -251,7 +259,16 @@ class ApproximationGEMModelRedesigned():
         print("Possible betas: ")
         print(fit_intercept_results)
 
+        initial_left_bound = Defines.left_bound_fit_init(self.exogen[0].size)
+        initial_right_bound = loop_end_bound
+
         for result in fit_intercept_results:
+            if (result < initial_left_bound).any():
+                continue
+
+            if (result > initial_right_bound).any():
+                continue
+
             t_likelihood_res = self.full_cl_recl_likelihood_f(result)
             # print(t_likelihood_res)
             if maximum_likelihood_res is None:
