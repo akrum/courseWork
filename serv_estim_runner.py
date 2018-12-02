@@ -39,6 +39,7 @@ def fit_and_send_res():
     try:
 
         result = "GEM {}".format(APPROXIMATION_MODEL.fit())
+        print("will push: %s" % result)
 
         data_for_req = {
             "run_res": result

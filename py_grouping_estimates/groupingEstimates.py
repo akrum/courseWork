@@ -51,7 +51,7 @@ class ApproximationGEMModelRedesigned():
             a_mu_i_plus_1 = -mu_i * Defines.INTERVAL_LENGTH
             a_mu_i = -mu_i * Defines.INTERVAL_LENGTH - Defines.INTERVAL_LENGTH
 
-        return 0.5 * (self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * Defines.sigmasq))) - self.erf(
+        return 0.5 * (self.erf((a_mu_i_plus_1 - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))) - self.erf(
             (a_mu_i - x_i * beta_hat) / (math.sqrt(2.0 * Defines.SIGMA_SQ))))
 
     def _dprob_func(self, x_i, y_i, mu_i, beta_hat, is_positive=True):
