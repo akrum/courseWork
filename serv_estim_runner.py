@@ -2,6 +2,8 @@ import random
 
 import numpy as np
 import requests
+import os
+import signal
 
 from py_grouping_estimates import groupingEstimates
 from multiprocessing import Process
@@ -63,4 +65,4 @@ if __name__ == "__main__":
         action_process.terminate()
 
         if action_process.is_alive():
-            action_process.terminate()
+            os.kill(action_process.pid, signal.SIGKILL)
