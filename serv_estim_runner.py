@@ -61,3 +61,6 @@ if __name__ == "__main__":
         action_process.join(timeout=SECONDS_TIMEOUT)
 
         action_process.terminate()
+
+        if action_process.is_alive():
+            action_process.terminate()
