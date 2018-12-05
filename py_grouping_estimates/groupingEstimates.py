@@ -25,6 +25,8 @@ class ApproximationGEMModelRedesigned():
             (-1.0 * value * value) * (4.0 / math.pi + Defines.a * value * value) / (1.0 + Defines.a * value * value)))
 
     def derf(self, value):
+        if value == 0.0:
+            return 2.0 / math.sqrt(math.pi)
 
         temp = math.exp((-1 * value * value) * (4 / math.pi + Defines.a * value * value) / (1 + Defines.a * value * value))
         temp *= ((-2 * value + 2 * Defines.a * value * value * value) * (4 / math.pi + Defines.a * value * value) / (

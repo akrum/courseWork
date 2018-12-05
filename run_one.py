@@ -7,6 +7,8 @@ from py_grouping_estimates import groupingEstimates
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
 SECONDS_TIMEOUT = 60 * 5
+SAMPLE_SIZE = 100
+np.seterr(all='raise')
 
 
 def alarm_handler(signum, frame):
@@ -30,7 +32,7 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
 
 
 def fit_and_print():
-    x_points, y_points = modulateRegression(100, OUTLIER_PERCENTAGE)
+    x_points, y_points = modulateRegression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
     APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
     result = "GEM {}".format(APPROXIMATION_MODEL.fit())
     print(result)
