@@ -7,7 +7,6 @@ from copy import deepcopy
 import numpy as np
 
 
-
 class ApproximationGEMModel:
     def __init__(self, exogen_data, endogen_data):
         warnings.warn("AproximationGEMModel is deperecated. Please, use AproximationGEMModel redesigned instead",
@@ -208,28 +207,6 @@ class ApproximationGEMModel:
             beta_hat_next = beta_hat_next + delta_beta
 
         return beta_hat_next
-
-    def compare(self):
-        self.classify()
-
-        beta_hat = np.matrix([170, 8]).T
-        print(self._dlikelihood_f(beta_hat, self.mu_data))
-
-        without_classification = self._dlikelihood_f(ACCURATE_RESULT, self.mu_data)
-        print(without_classification)
-
-        temp_delta = 1.0
-        self.reclassify(temp_delta)
-
-        with_classification = self._dlikelihood_f(ACCURATE_RESULT, self.mu_data_reclassified)
-
-        while np.equal(with_classification, ACCURATE_RESULT).all():
-            temp_delta += 0.5
-            with_classification = self._dlikelihood_f(ACCURATE_RESULT, self.mu_data_reclassified)
-
-        print(self._dlikelihood_f(ACCURATE_RESULT, self.mu_data_reclassified))
-
-        return without_classification, with_classification
 
 
 def GEM(exogen_data, endogen_data, *args):

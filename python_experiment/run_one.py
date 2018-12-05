@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 
-from py_grouping_estimates import groupingEstimates
+from python_experiment.py_grouping_estimates import groupingEstimates
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0

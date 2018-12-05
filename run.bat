@@ -1,3 +1,3 @@
 git reset --hard
 git pull --tags origin master
-serv_estim_runner.py
+py python_experiment/serv_estim_runner.py

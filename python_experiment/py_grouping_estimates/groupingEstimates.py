@@ -1,11 +1,10 @@
 import copy
 import math
-from threading import Thread
+import timeout_decorator
+
 from py_grouping_estimates.GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
 
 import numpy as np
-
-from py_grouping_estimates.groupingEstimates_old import ApproximationGEMModel
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
@@ -250,26 +249,27 @@ class ApproximationGEMModelRedesigned():
 
         fit_intercept_results = []
 
+        @timeout_decorator.timeout(Defines.THREAD_JOIN_TIMEOUT, use_signals=True, timeout_exception=StopIteration)
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
             if (np.isnan(t_result) == False).all():
-                print("added value to list %s" % t_result)
                 fit_intercept_results.append(t_result)
+                print("added value to list %s" % t_result)
             else:
-                raise Exception("got nan")
+                raise StopIteration("got nan")
 
-        created_threads = []
         for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
             beta_right = beta_left + right_bound_indent
-
-            calculus_thread = Thread(target=fit_intercept_and_add_to_results, args=(np.matrix.copy(beta_left),
-                                                                                    np.matrix.copy(
-                                                                                        beta_right),))
-            created_threads.append(calculus_thread)
-            calculus_thread.start()
-
-        for thread in created_threads:
-            thread.join(timeout=Defines.THREAD_JOIN_TIMEOUT)
+            try:
+                fit_intercept_and_add_to_results(beta_left, beta_right)
+            except StopIteration:
+                print("fit: Fit execution timed out")
+            except FloatingPointError as e:
+                print("fit: %s" % e)
+            except np.linalg.linalg.LinAlgError as e:
+                print("fit: Singular matrix")
+            finally:
+                pass
 
         maximum_likelihood_res = None
         result_to_return = np.matrix([None for _ in range(self.exogen[0].size)]).T
