@@ -150,6 +150,8 @@ class ApproximationGEMModelRedesigned():
         self._np_freq_positive_reclassified = [None for i in range(self.endogen.size)]
         self._np_freq_negative_reclassified = [None for i in range(self.endogen.size)]
 
+        count_reclassified = 0
+
         for i in range(0, self.endogen.size):
             current_faced_classes_positive = {}
             current_faced_classes_negative = {}
@@ -184,10 +186,24 @@ class ApproximationGEMModelRedesigned():
 
             if maximumfacedtimes_positive > maximumfacedtimes_negative:
                 self._np_freq_positive_reclassified[i] = maximumfacedclass_positive
+
+                if self._np_freq_positive[i] is not None:
+                    if maximumfacedtimes_positive > self._np_freq_positive[i]:
+                        count_reclassified += 1
+                elif self._np_freq_negative[i] is not None:
+                    if maximumfacedtimes_positive > self._np_freq_negative[i]:
+                        count_reclassified += 1
             else:
                 self._np_freq_negative_reclassified[i] = maximumfacedclass_negative
 
-        print("reclassified")
+                if self._np_freq_positive[i] is not None:
+                    if maximumfacedclass_negative > self._np_freq_positive[i]:
+                        count_reclassified += 1
+                elif self._np_freq_negative[i] is not None:
+                    if maximumfacedclass_negative > self._np_freq_negative[i]:
+                        count_reclassified += 1
+
+        print("reclassified: %i" % count_reclassified)
 
     def fit(self):
         self.classify()
