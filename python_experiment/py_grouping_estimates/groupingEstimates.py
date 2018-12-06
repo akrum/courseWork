@@ -1,7 +1,7 @@
 import copy
 import math
 
-from py_grouping_estimates.GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
+from .GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
 
 import numpy as np
 import sys
