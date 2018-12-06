@@ -3,6 +3,7 @@ import math
 
 from .GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
 from threading import Thread
+from multiprocessing import Event
 
 import numpy as np
 import sys
@@ -24,6 +25,7 @@ class ApproximationGEMModelRedesigned():
         self._np_freq_negative = None
         self._np_freq_positive_reclassified = None
         self._np_freq_negative_reclassified = None
+        self._shared_stop_event = Event()
 
     def erf(self, value):
         return math.sqrt(1.0 - math.exp(
@@ -284,6 +286,8 @@ class ApproximationGEMModelRedesigned():
         initial_left_bound = Defines.left_bound_fit_init(self.exogen[0].size)
         initial_right_bound = loop_end_bound
 
+        self._shared_stop_event.set()
+
         for result in fit_intercept_results:
             if (result < initial_left_bound).any():
                 continue
@@ -312,6 +316,8 @@ class ApproximationGEMModelRedesigned():
 
         iteration_counter = 0
         while np.linalg.norm(beta_hat - beta_hat_next) > Defines.METHOD_ACCURACY:
+            if self._shared_stop_event.is_set():
+                raise StopIteration("fit: got stop event")
             if iteration_counter < Defines.COUNT_LIMIT_OPERATIONS:
                 iteration_counter += 1
                 dlikelihood_f_for_beta_hat_next = self.full_cl_recl_dlikelihood_f(beta_hat_next)
