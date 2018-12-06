@@ -9,7 +9,7 @@ from py_grouping_estimates import groupingEstimates
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
 SAMPLE_SIZE = 100
-PLOT_SIZE = 150
+PLOT_SIZE = 30
 
 
 def alarm_handler(signum, frame):
@@ -33,20 +33,33 @@ def modulate_regression(regression_sample_quintity, regression_outlier_percentag
 
 
 if __name__ == "__main__":
-    first_coordinates = []
-    second_coordinates = []
+    first_coordinates_with_classification = []
+    second_coordinates_with_classification = []
+    first_coordinates_without_classification = []
+    second_coordinates_without_classification = []
+
     for iter_time in range(0, PLOT_SIZE):
         x_points, y_points = modulate_regression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
-        APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
-        t_result = APPROXIMATION_MODEL.fit()
 
-        first_coordinates.append(t_result[0])
-        second_coordinates.append(t_result[1])
+        APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
+        t_result_without = APPROXIMATION_MODEL.fit_without_reclassification()
+
+        APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
+        t_result_with = APPROXIMATION_MODEL.fit()
+
+        first_coordinates_without_classification.append(t_result_without[0])
+        second_coordinates_without_classification.append(t_result_without[1])
+
+        first_coordinates_with_classification.append(t_result_with[0])
+        second_coordinates_with_classification.append(t_result_with[1])
+
+
 
     plt.title("Оценки вектора 90, 4")
     plt.xlabel("beta_0")
     plt.ylabel("beta_1")
     plt.axis([80, 100, 3, 5])
+    sns.scatterplot(first_coordinates_without_classification, second_coordinates_without_classification, color="green")
+    sns.scatterplot(first_coordinates_with_classification, second_coordinates_with_classification, color="blue")
     sns.scatterplot(list(ACCURATE_RESULT[0]), list(ACCURATE_RESULT[1]), color="red")
-    sns.scatterplot(first_coordinates, second_coordinates)
     plt.show()

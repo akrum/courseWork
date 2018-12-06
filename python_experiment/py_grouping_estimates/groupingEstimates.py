@@ -4,6 +4,7 @@ import math
 from .GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
 from threading import Thread
 from multiprocessing import Event
+from contextlib import contextmanager
 
 import numpy as np
 import sys
@@ -142,6 +143,12 @@ class ApproximationGEMModelRedesigned():
             beta, self._np_freq_negative, is_positive=False)
 
     def classify(self):
+        if self._np_freq_positive is not None:
+            print("fit: classified yet")
+            return
+        if self._np_freq_negative is not None:
+            print("fit: classified yet")
+            return
         self._np_freq_positive = [None for i in range(self.endogen.size)]
         self._np_freq_negative = [None for i in range(self.endogen.size)]
 
@@ -151,11 +158,18 @@ class ApproximationGEMModelRedesigned():
             else:
                 self._np_freq_negative[i] = int(abs(self.endogen[i]) / Defines.INTERVAL_LENGTH)
 
-        print("classified")
+        print("fit: classified")
 
-        return self
+        return
 
     def reclassify(self, delta):
+        if self._np_freq_positive_reclassified is not None:
+            print("fit: reclassified yet")
+            return
+        if self._np_freq_negative_reclassified is not None:
+            print("fit: reclassified yet")
+            return
+
         self._np_freq_positive_reclassified = [None for i in range(self.endogen.size)]
         self._np_freq_negative_reclassified = [None for i in range(self.endogen.size)]
 
@@ -212,13 +226,13 @@ class ApproximationGEMModelRedesigned():
                     if maximumfacedclass_negative > self._np_freq_negative[i]:
                         count_reclassified += 1
 
-        print("reclassified: %i" % count_reclassified)
+        print("fit: reclassified: %i" % count_reclassified)
 
     def fit(self):
         self.classify()
         self.reclassify(0.5)
 
-        print("fitting.....")
+        print("fit: fitting.....")
 
         t_beta_hat = np.matrix([80.0, 0.0]).T
         t_beta_hat_next = np.matrix([100.0, 10.0]).T
@@ -260,10 +274,10 @@ class ApproximationGEMModelRedesigned():
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
             if (np.isnan(t_result) == False).all():
-                print("added value to list %s" % t_result)
+                print("fit: added value to list %s" % t_result)
                 fit_intercept_results.append(t_result)
             else:
-                raise Exception("got nan")
+                raise Exception("fit: got nan")
 
         created_threads = []
         for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
@@ -280,7 +294,7 @@ class ApproximationGEMModelRedesigned():
         maximum_likelihood_res = None
         result_to_return = np.matrix([None for _ in range(self.exogen[0].size)]).T
 
-        print("Possible betas: ")
+        print("fit: possible betas: ")
         print(fit_intercept_results)
 
         initial_left_bound = Defines.left_bound_fit_init(self.exogen[0].size)
@@ -337,40 +351,25 @@ class ApproximationGEMModelRedesigned():
                 beta_hat = beta_hat_next
                 beta_hat_next = beta_hat_next + delta_beta.T
             else:
-                raise StopIteration("Fit intercept has achieved iteration limit")
+                raise StopIteration("fit: fit_intercept has achieved iteration limit")
 
         return beta_hat_next
+
+    @contextmanager
+    def turn_off_reclassification(self):
+        self._np_freq_positive_reclassified = self._np_freq_positive
+        self._np_freq_negative_reclassified = self._np_freq_negative
+        yield
+        print("fit: resetting reclassification")
+        self._np_freq_positive_reclassified = None
+        self._np_freq_negative_reclassified = None
+        self._shared_stop_event.clear()
 
     def fit_without_reclassification(self):
         self.classify()
-
-        print("fitting.....")
-
-        beta_hat = np.matrix(np.ones(self.exogen[0].size)).T
-        beta_hat_next = np.matrix([200.0 for _ in range(self.exogen[0].size)]).T
-
-        while np.linalg.norm(self.full_cl_dlikelihood_f(beta_hat_next)) > Defines.METHOD_ACCURACY:
-            dlikelihood_f_for_beta_hat_next = self.full_cl_dlikelihood_f(beta_hat_next)
-            delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
-
-            dlikelihood_derivative_approximation = np.zeros((self.exogen[0].size, self.exogen[0].size))
-
-            for i in range(self.exogen[0].size):
-                temp_beta = copy.deepcopy(beta_hat_next)
-                temp_beta[i] = beta_hat[i]
-                # FIXME: something bad with dimensions
-                dlikelihood_derivative_approximation[i] = ((self.full_cl_dlikelihood_f(
-                    beta_hat_next) - self.full_cl_dlikelihood_f(temp_beta)) / (beta_hat_next[i] - beta_hat[i])).A1
-
-            delta_beta = (- np.matrix(dlikelihood_f_for_beta_hat_next)[0] * np.linalg.inv(
-                dlikelihood_derivative_approximation.T))  # FIXME: something wrong here
-            beta_hat = beta_hat_next
-            beta_hat_next = beta_hat_next + delta_beta.T
-
-        return beta_hat_next
-
-    def fit_without_classification(self):
-        pass
+        with self.turn_off_reclassification():
+            result_to_return = self.fit()
+        return result_to_return
 
 
 def GEM(exogen_data, endogen_data, *args):
