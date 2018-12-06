@@ -1,13 +1,18 @@
 import copy
 import math
-import timeout_decorator
 
-from py_grouping_estimates.GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
+from python_experiment.py_grouping_estimates.GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
 
 import numpy as np
+import sys
+
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 
 class ApproximationGEMModelRedesigned():
@@ -249,25 +254,24 @@ class ApproximationGEMModelRedesigned():
 
         fit_intercept_results = []
 
-        @timeout_decorator.timeout(Defines.THREAD_JOIN_TIMEOUT, use_signals=True, timeout_exception=StopIteration)
         def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
             t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
             if (np.isnan(t_result) == False).all():
-                fit_intercept_results.append(t_result)
                 print("added value to list %s" % t_result)
+                fit_intercept_results.append(t_result)
             else:
-                raise StopIteration("got nan")
+                raise Exception("got nan")
 
         for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
             beta_right = beta_left + right_bound_indent
             try:
-                fit_intercept_and_add_to_results(beta_left, beta_right)
-            except StopIteration:
-                print("fit: Fit execution timed out")
+                fit_intercept_and_add_to_results(np.matrix.copy(beta_left),np.matrix.copy(beta_right))
+            except StopIteration as e:
+                eprint("fit: %s" % e)
             except FloatingPointError as e:
-                print("fit: %s" % e)
+                eprint("fit: %s" % e)
             except np.linalg.linalg.LinAlgError as e:
-                print("fit: Singular matrix")
+                eprint("fit: %s" % e)
             finally:
                 pass
 
@@ -306,23 +310,28 @@ class ApproximationGEMModelRedesigned():
         if beta_hat_next is None:
             beta_hat_next = np.matrix(np.ones(self.exogen[0].size)).T
 
+        iteration_counter = 0
         while np.linalg.norm(beta_hat - beta_hat_next) > Defines.METHOD_ACCURACY:
-            dlikelihood_f_for_beta_hat_next = self.full_cl_recl_dlikelihood_f(beta_hat_next)
-            delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
+            if iteration_counter < Defines.COUNT_LIMIT_OPERATIONS:
+                iteration_counter += 1
+                dlikelihood_f_for_beta_hat_next = self.full_cl_recl_dlikelihood_f(beta_hat_next)
+                delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
 
-            dlikelihood_derivative_approximation = np.zeros((self.exogen[0].size, self.exogen[0].size))
+                dlikelihood_derivative_approximation = np.zeros((self.exogen[0].size, self.exogen[0].size))
 
-            for i in range(self.exogen[0].size):
-                temp_beta = copy.deepcopy(beta_hat_next)
-                temp_beta[i] = beta_hat[i]
-                # FIXME: something bad with dimensions
-                dlikelihood_derivative_approximation[i] = ((self.full_cl_recl_dlikelihood_f(
-                    beta_hat_next) - self.full_cl_recl_dlikelihood_f(temp_beta)) / (beta_hat_next[i] - beta_hat[i])).A1
+                for i in range(self.exogen[0].size):
+                    temp_beta = copy.deepcopy(beta_hat_next)
+                    temp_beta[i] = beta_hat[i]
+                    # FIXME: something bad with dimensions
+                    dlikelihood_derivative_approximation[i] = ((self.full_cl_recl_dlikelihood_f(
+                        beta_hat_next) - self.full_cl_recl_dlikelihood_f(temp_beta)) / (beta_hat_next[i] - beta_hat[i])).A1
 
-            delta_beta = (- np.matrix(dlikelihood_f_for_beta_hat_next)[0] * np.linalg.inv(
-                dlikelihood_derivative_approximation))  # FIXME: something wrong here
-            beta_hat = beta_hat_next
-            beta_hat_next = beta_hat_next + delta_beta.T
+                delta_beta = (- np.matrix(dlikelihood_f_for_beta_hat_next)[0] * np.linalg.inv(
+                    dlikelihood_derivative_approximation))  # FIXME: something wrong here
+                beta_hat = beta_hat_next
+                beta_hat_next = beta_hat_next + delta_beta.T
+            else:
+                raise StopIteration("Fit intercept has achieved iteration limit")
 
         return beta_hat_next
 
@@ -334,7 +343,7 @@ class ApproximationGEMModelRedesigned():
         beta_hat = np.matrix(np.ones(self.exogen[0].size)).T
         beta_hat_next = np.matrix([200.0 for _ in range(self.exogen[0].size)]).T
 
-        while np.linalg.norm(self.full_cl_dlikelihood_f(beta_hat_next)) > self.METHOD_ACCURACY:
+        while np.linalg.norm(self.full_cl_dlikelihood_f(beta_hat_next)) > Defines.METHOD_ACCURACY:
             dlikelihood_f_for_beta_hat_next = self.full_cl_dlikelihood_f(beta_hat_next)
             delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
 
