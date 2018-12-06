@@ -39,21 +39,24 @@ if __name__ == "__main__":
     second_coordinates_without_classification = []
 
     for iter_time in range(0, PLOT_SIZE):
-        x_points, y_points = modulate_regression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
+        try:
+            x_points, y_points = modulate_regression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
 
-        APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
-        t_result_without = APPROXIMATION_MODEL.fit_without_reclassification()
+            APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
+            t_result_without = APPROXIMATION_MODEL.fit_without_reclassification()
 
-        APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
-        t_result_with = APPROXIMATION_MODEL.fit()
+            APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
+            t_result_with = APPROXIMATION_MODEL.fit()
 
-        first_coordinates_without_classification.append(t_result_without[0])
-        second_coordinates_without_classification.append(t_result_without[1])
+            first_coordinates_without_classification.append(t_result_without[0])
+            second_coordinates_without_classification.append(t_result_without[1])
 
-        first_coordinates_with_classification.append(t_result_with[0])
-        second_coordinates_with_classification.append(t_result_with[1])
-
-
+            first_coordinates_with_classification.append(t_result_with[0])
+            second_coordinates_with_classification.append(t_result_with[1])
+        except np.linalg.linalg.LinAlgError as e:
+            print(e)
+        except StopIteration as e:
+            print(e)
 
     plt.title("Оценки вектора 90, 4")
     plt.xlabel("beta_0")

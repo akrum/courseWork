@@ -230,7 +230,7 @@ class ApproximationGEMModelRedesigned():
 
     def fit(self):
         self.classify()
-        self.reclassify(0.5)
+        self.reclassify(Defines.RECLASSIFICATION_LEVEL)
 
         print("fit: fitting.....")
 
