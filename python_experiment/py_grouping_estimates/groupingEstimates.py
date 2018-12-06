@@ -2,6 +2,7 @@ import copy
 import math
 
 from .GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
+from threading import Thread
 
 import numpy as np
 import sys
@@ -262,18 +263,17 @@ class ApproximationGEMModelRedesigned():
             else:
                 raise Exception("got nan")
 
+        created_threads = []
         for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
             beta_right = beta_left + right_bound_indent
-            try:
-                fit_intercept_and_add_to_results(np.matrix.copy(beta_left),np.matrix.copy(beta_right))
-            except StopIteration as e:
-                eprint("fit: %s" % e)
-            except FloatingPointError as e:
-                eprint("fit: %s" % e)
-            except np.linalg.linalg.LinAlgError as e:
-                eprint("fit: %s" % e)
-            finally:
-                pass
+            calculus_thread = Thread(target=fit_intercept_and_add_to_results, args=(np.matrix.copy(beta_left),
+                                                                                    np.matrix.copy(
+                                                                                        beta_right)))
+            created_threads.append(calculus_thread)
+            calculus_thread.start()
+
+        for thread in created_threads:
+            thread.join(timeout=Defines.THREAD_JOIN_TIMEOUT)
 
         maximum_likelihood_res = None
         result_to_return = np.matrix([None for _ in range(self.exogen[0].size)]).T
