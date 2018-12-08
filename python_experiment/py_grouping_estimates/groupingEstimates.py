@@ -162,7 +162,7 @@ class ApproximationGEMModelRedesigned():
 
         return
 
-    def reclassify(self, delta):
+    def reclassify(self, reclassify_K):
         if self._np_freq_positive_reclassified is not None:
             print("fit: reclassified yet")
             return
@@ -176,22 +176,31 @@ class ApproximationGEMModelRedesigned():
         count_reclassified = 0
 
         for i in range(0, self.endogen.size):
+            distances = [None for _ in range(self.endogen.size)]
+
+            for j in range(0, self.endogen.size):
+                if self._np_freq_positive[j] is not None:
+                    distances[j] = (np.linalg.norm(self.exogen[i]-self.exogen[j]), True, self._np_freq_positive[j])
+                else:
+                    distances[j] = (np.linalg.norm(self.exogen[i] - self.exogen[j]), False, self._np_freq_negative[j])
+
+            sorted_distances = sorted(distances, key=lambda item: item[0])
+
             current_faced_classes_positive = {}
             current_faced_classes_negative = {}
-            for j in range(0, self.endogen.size):
-                if np.linalg.norm(self.exogen[i] - self.exogen[j]) <= delta:
-                    if self._np_freq_positive[j] is not None:
-                        if self._np_freq_positive[j] in current_faced_classes_positive:
-                            current_faced_classes_positive[self._np_freq_positive[j]] += 1
-                        else:
-                            current_faced_classes_positive[self._np_freq_positive[j]] = 1
-                    elif self._np_freq_negative[j] is not None:
-                        if self._np_freq_negative[j] in current_faced_classes_positive:
-                            current_faced_classes_negative[self._np_freq_negative[j]] += 1
-                        else:
-                            current_faced_classes_negative[self._np_freq_negative[j]] = 1
+
+            for j in range(0, reclassify_K):
+                if sorted_distances[j][1] == True:
+                    if sorted_distances[j][2] in current_faced_classes_positive:
+                        current_faced_classes_positive[sorted_distances[j][2]] += 1
                     else:
-                        continue
+                        current_faced_classes_positive[sorted_distances[j][2]] = 1
+                if sorted_distances[j][1] == False:
+                    if sorted_distances[j][2] in current_faced_classes_negative:
+                        current_faced_classes_negative[sorted_distances[j][2]] += 1
+                    else:
+                        current_faced_classes_negative[sorted_distances[j][2]] = 1
+
             maximumfacedtimes_positive = 1 if self._np_freq_positive[i] is not None else 0
             maximumfacedclass_positive = self._np_freq_positive[i]
             maximumfacedtimes_negative = 1 if self._np_freq_negative[i] is not None else 0
@@ -211,19 +220,19 @@ class ApproximationGEMModelRedesigned():
                 self._np_freq_positive_reclassified[i] = maximumfacedclass_positive
 
                 if self._np_freq_positive[i] is not None:
-                    if maximumfacedtimes_positive > self._np_freq_positive[i]:
+                    if maximumfacedclass_positive != self._np_freq_positive[i]:
                         count_reclassified += 1
                 elif self._np_freq_negative[i] is not None:
-                    if maximumfacedtimes_positive > self._np_freq_negative[i]:
+                    if maximumfacedtimes_positive != self._np_freq_negative[i]:
                         count_reclassified += 1
             else:
                 self._np_freq_negative_reclassified[i] = maximumfacedclass_negative
 
                 if self._np_freq_positive[i] is not None:
-                    if maximumfacedclass_negative > self._np_freq_positive[i]:
+                    if maximumfacedclass_negative != self._np_freq_positive[i]:
                         count_reclassified += 1
                 elif self._np_freq_negative[i] is not None:
-                    if maximumfacedclass_negative > self._np_freq_negative[i]:
+                    if maximumfacedclass_negative != self._np_freq_negative[i]:
                         count_reclassified += 1
 
         print("fit: reclassified: %i" % count_reclassified)

@@ -10,7 +10,7 @@ class CreateDefines:
     THREAD_JOIN_TIMEOUT = 10
     COUNT_LIMIT_OPERATIONS = 1e2
     LEFT_BOUND_EVERY_VAR_INDENT = 20.0
-    RECLASSIFICATION_LEVEL = 0.5
+    RECLASSIFICATION_LEVEL = 10
 
     @property
     def a(self):
