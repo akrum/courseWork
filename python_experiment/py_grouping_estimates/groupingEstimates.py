@@ -238,6 +238,7 @@ class ApproximationGEMModelRedesigned():
         print("fit: reclassified: %i" % count_reclassified)
 
     def fit(self):
+        print("")
         self.classify()
         self.reclassify(Defines.RECLASSIFICATION_LEVEL)
 
