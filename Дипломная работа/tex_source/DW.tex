@@ -46,10 +46,10 @@
     Румянцев\\
     Андрей Кириллович\\
     \vspace{0.5cm}
-    \textbf{"Робастные оценки параметров регрессии при наличии группирования выборки"}\\
+    \textbf{"Статистическое оценивание параметров линейной регрессии с выбросами при наличии группирования наблюдений"}\\
     \vspace{0.5cm}
     \fontsize{16pt}{16pt}\selectfont
-    Курсовая работа\\
+    Курсовой проект\\
     \end{center}
     \vspace{3.5cm}
     \fontsize{14pt}{14pt}\selectfont
@@ -195,7 +195,7 @@
 \end{tabular}
 \end{center}
 \newpage
-\section{Моделирование функции регрессии с аномальными наблюдениями}
+\section{Моделирование функции регрессии с аномальными наблюдениями}\label{sec3}
 Для начала смоделируем функцию регрессии по методу (\ref{eq3}). Для удобства моделируем регрессию с одномерными регрессорами $x_i, i=\overline{1,N}$.\hfill\break
 Воспользуемся такими параметрами:\hfill\break
 \begin{center}
@@ -223,7 +223,7 @@ $U(-5,5)$ - равномерное распределение на отрезк�
 Получаем такой график:\hfill\break
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=100mm]{graphic.png}
+    \includegraphics[width=100mm]{pics/graphic.png}
     \caption{Вывод графика рассеяния $(y_i,x_i)$\label{overflow}}
 \end{figure}
 \newpage
@@ -349,11 +349,11 @@ $U(-5,5)$ - равномерное распределение на отрезк�
 \begin{equation}
     (x_i, \check{\mu}_i),
 \end{equation}
-где $\check{\mu}_i$ максимально встречающийся класс близлежайших соседей:
+где $\check{\mu}_i$ максимально встречающийся класс близлежайших $K$ соседей:
 \begin{equation}
-    \check{\mu}_i = \arg\max_j \sum_{|x_k-x_i|\leq \Delta,~k\neq i} \delta_{\check{\mu}_k j},
+    \check{\mu}_i = \arg\max_j \sum_{x_j\in V_i,~j\neq i} \delta_{\check{\mu}_k j},
 \end{equation}
-где $\Delta$ параметр, задающий уровень близости. Чем он выше, тем больше используется соседей для коррекции класса нашего наблюдения.
+где $(V_i)$ те $K$ наблюдений из $x_k, k=\overline{1,N}$, где .Чем он выше, тем больше используется соседей для коррекции класса нашего наблюдения.
 
 Итак, переклассифицировав выборку, применим к ней функцию правдоподобия из уравнений (\ref{eq22}-\ref{eq23}), только используя теперь новые классы $\check{\mu}_i$ вместо $\mu_i$. 
 Аналогично пунктам \ref{sec4_1}-\ref{sec4_2} максимизируем ее и найдем новую оценку параметров $\hat{\beta}$.
@@ -372,11 +372,191 @@ $U(-5,5)$ - равномерное распределение на отрезк�
 \begin{eqnarray}
     \frac{\delta l (\beta)}{\delta \beta}=0.
 \end{eqnarray}
-на каждом из отрезков и найдя среди полученных приближений $\hat{\beta}$ то, 
-на котором функция правдоподобия (\ref{eq22}-\ref{eq23}) достигает максимума 
+на каждом из отрезков найдем возможные $\hat{\beta}$. Найдя среди полученных приближений $\hat{\beta}$ то, 
+на котором функция правдоподобия (\ref{eq22}-\ref{eq23}) достигает максимума, 
 найдем решение.
 
 
+
+\subsection{Эксперименты}
+\begin{center}
+    \begin{tabular}{|p{5cm}|p{5cm}|}
+        \hline
+        \multicolumn{2}{|c|}{Параметры программы} \\
+        \hline
+        Переменная&значение\\
+        \hline
+        Размер выборки $N$& 100\\
+        \hline
+        Доля выбросов $\widetilde{\varepsilon}$& 0.8\\
+        \hline
+        Параметры регрессии $\beta$& $(90,4)$\\
+        \hline
+        Регрессоры $x_i$ & $\sim U(-5,5)$\\
+        \hline
+        $\varepsilon_i$&$\sim N(0,16)$\\
+        \hline
+        $\eta_i$&$\sim N(100,100)$\\
+        \hline
+    \end{tabular},
+    \end{center}
+построим для начала 100 оценок $\hat{\beta}$ при разных выборках:
+
+\newpage
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=100mm]{pics/plot_90_4_(2).png}
+    \caption{Вывод графика рассеяния $(\hat{\beta}_0,\hat{\beta}_1)$ красным - истинное значение\label{overflow}}
+\end{figure}
+
+теперь  100 оценок $\hat{\beta}$ при выключенной классификации и выключенной:
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=100mm]{pics/plot_90_4_with-without_(2).png}
+    \caption{Вывод графика рассеяния $(\hat{\beta}_0,\hat{\beta}_1)$\label{overflow}}
+    \label{pic_3}
+\end{figure}
+\break
+На графике \ref{pic_3} зеленым цветом обозначены приближения без классификации, синим с классификацией, а красным - истинное значение.
+\newpage
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=100mm]{pics/plot_90_4_accuracy-length.png}
+    \caption{Зависимость точности от длины интервала\label{overflow}}
+    \label{pic_3}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=100mm]{pics/plot_90_4_accuracy-samplesize.png}
+    \caption{Зависимость точности от размера выборки\label{overflow}}
+    \label{pic_3}
+\end{figure}
+Видим, что точность увеличивается при увеличении выборки и падает при уменьшении точности классифицирования. Метод в общем случае дает достаточно хорошее приближение к точному значению.
+\newpage
+\section{Приложение}
+\section{Листинг некоторых методов}
+Метод секущих:
+\begin{verbatim}
+def fit_intercept(self, beta_hat=None, beta_hat_next=None):
+    if beta_hat is None:
+        beta_hat = np.matrix(np.zeros(self.exogen[0].size)).T
+
+    if beta_hat_next is None:
+        beta_hat_next = np.matrix(np.ones(self.exogen[0].size)).T
+
+    iteration_counter = 0
+    while np.linalg.norm(beta_hat - beta_hat_next) > Defines.METHOD_ACCURACY:
+        if self._shared_stop_event.is_set():
+            raise StopIteration("fit: got stop event")
+        if iteration_counter < Defines.COUNT_LIMIT_OPERATIONS:
+            iteration_counter += 1
+            dlikelihood_f_for_beta_hat_next = self.full_cl_recl_dlikelihood_f(beta_hat_next)
+            delta_beta = np.matrix(np.zeros(self.exogen[0].size)).T
+
+            dlikelihood_derivative_approximation = np.zeros((self.exogen[0].size,
+             self.exogen[0].size))
+
+            for i in range(self.exogen[0].size):
+                temp_beta = copy.deepcopy(beta_hat_next)
+                temp_beta[i] = beta_hat[i]
+                dlikelihood_derivative_approximation[i] = ((self.full_cl_recl_dlikelihood_f(
+                    beta_hat_next) - self.full_cl_recl_dlikelihood_f(temp_beta)) 
+                            / (beta_hat_next[i] - beta_hat[i])).A1
+
+            delta_beta = (- np.matrix(dlikelihood_f_for_beta_hat_next)[0] * np.linalg.inv(
+                dlikelihood_derivative_approximation))
+            beta_hat = beta_hat_next
+            beta_hat_next = beta_hat_next + delta_beta.T
+        else:
+            raise StopIteration("fit: fit_intercept has achieved iteration limit")
+
+    return beta_hat_next
+\end{verbatim}
+Решение методом секущих:
+\begin{verbatim}
+def fit(self):
+    print("")
+    self.classify()
+    self.reclassify(Defines.RECLASSIFICATION_LEVEL)
+
+    print("fit: fitting.....")
+
+    t_beta_hat = np.matrix([80.0, 0.0]).T
+    t_beta_hat_next = np.matrix([100.0, 10.0]).T
+    right_bound_indent = Defines.right_bound_fit_indent(self.exogen[0].size)
+    loop_indentantion_value = Defines.LEFT_BOUND_EVERY_VAR_INDENT
+    loop_end_bound = Defines.fit_loop_stop_value(self.exogen[0].size)
+
+    beta_hats_left_bound = Defines.left_bound_fit_init(self.exogen[0].size)
+
+    def recursive_beta_generator(index, previous_step_beta):
+        assert (index <= self.exogen[0].size)
+
+        beta_next = np.matrix.copy(previous_step_beta)
+
+        while ((beta_next + right_bound_indent) < loop_end_bound).all():
+            if index == self.exogen[0].size:
+                yield beta_next
+                break
+
+            beta_next[index] += loop_indentantion_value
+
+            next_index_generator = recursive_beta_generator(index + 1, beta_next)
+            for item in next_index_generator:
+                yield item
+
+    fit_intercept_results = []
+
+    def fit_intercept_and_add_to_results(beta_hat_one, beta_hat_two):
+        t_result = self.fit_intercept(beta_hat_one, beta_hat_two)
+        if (np.isnan(t_result) == False).all():
+            print("fit: added value to list %s" % t_result)
+            fit_intercept_results.append(t_result)
+        else:
+            raise Exception("fit: got nan")
+
+    created_threads = []
+    for beta_left in recursive_beta_generator(0, beta_hats_left_bound):
+        beta_right = beta_left + right_bound_indent
+        calculus_thread = Thread(target=fit_intercept_and_add_to_results, args=(np.matrix.copy(beta_left),
+                                                                                np.matrix.copy(
+                                                                                    beta_right)))
+        created_threads.append(calculus_thread)
+        calculus_thread.start()
+
+    for thread in created_threads:
+        thread.join(timeout=Defines.THREAD_JOIN_TIMEOUT)
+
+    maximum_likelihood_res = None
+    result_to_return = np.matrix([None for _ in range(self.exogen[0].size)]).T
+
+    print("fit: possible betas: ")
+    print(fit_intercept_results)
+
+    initial_left_bound = Defines.left_bound_fit_init(self.exogen[0].size)
+    initial_right_bound = loop_end_bound
+
+    self._shared_stop_event.set()
+
+    for result in fit_intercept_results:
+        if (result < initial_left_bound).any():
+            continue
+
+        if (result > initial_right_bound).any():
+            continue
+
+        t_likelihood_res = self.full_cl_recl_likelihood_f(result)
+        # print(t_likelihood_res)
+        if maximum_likelihood_res is None:
+            maximum_likelihood_res = t_likelihood_res
+            result_to_return = result
+
+        if maximum_likelihood_res < t_likelihood_res:
+            maximum_likelihood_res = t_likelihood_res
+            result_to_return = result
+
+    return result_to_return
+\end{verbatim}
 \newpage
 \section{Заключение}
 Были описаны некоторые методы робастного оценивания параметров регрессии.
