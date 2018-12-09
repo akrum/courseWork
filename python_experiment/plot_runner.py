@@ -8,12 +8,9 @@ from py_grouping_estimates import groupingEstimates
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
-SAMPLE_SIZE = 100
-PLOT_SIZE = 30
-
-
-def alarm_handler(signum, frame):
-    raise Exception("function timeout")
+SAMPLE_SIZE_STEP = 10
+PLOT_SIZE = 100
+MEANING_FACTOR = 100
 
 
 def modulate_regression(regression_sample_quintity, regression_outlier_percentage):
@@ -33,36 +30,28 @@ def modulate_regression(regression_sample_quintity, regression_outlier_percentag
 
 
 if __name__ == "__main__":
-    first_coordinates_with_classification = []
-    second_coordinates_with_classification = []
-    first_coordinates_without_classification = []
-    second_coordinates_without_classification = []
-
-    for iter_time in range(0, PLOT_SIZE):
+    differences = []
+    sample_sizes = []
+    for i in range(0, PLOT_SIZE):
         try:
-            x_points, y_points = modulate_regression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
+            this_samle_size = 80 + i * SAMPLE_SIZE_STEP
+            x_points, y_points = modulate_regression(this_samle_size, OUTLIER_PERCENTAGE)
 
             APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
-            t_result_without = APPROXIMATION_MODEL.fit_without_reclassification()
+            t_result = APPROXIMATION_MODEL.fit()
 
-            APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
-            t_result_with = APPROXIMATION_MODEL.fit()
-
-            first_coordinates_without_classification.append(t_result_without[0])
-            second_coordinates_without_classification.append(t_result_without[1])
-
-            first_coordinates_with_classification.append(t_result_with[0])
-            second_coordinates_with_classification.append(t_result_with[1])
+            differences.append(np.linalg.norm(t_result-ACCURATE_RESULT))
+            sample_sizes.append(this_samle_size)
         except np.linalg.linalg.LinAlgError as e:
             print(e)
         except StopIteration as e:
             print(e)
 
-    plt.title("Оценки вектора 90, 4")
-    plt.xlabel("beta_0")
-    plt.ylabel("beta_1")
-    plt.axis([80, 100, 3, 5])
-    sns.scatterplot(first_coordinates_without_classification, second_coordinates_without_classification, color="green")
-    sns.scatterplot(first_coordinates_with_classification, second_coordinates_with_classification, color="blue")
-    sns.scatterplot(list(ACCURATE_RESULT[0]), list(ACCURATE_RESULT[1]), color="red")
-    plt.show()
+
+plt.title("Зависимость точности от размера выборки")
+plt.xlabel("размер выборки")
+plt.ylabel("точность")
+# plt.axis([80, 100, 3, 5])
+
+sns.lineplot(sample_sizes, differences)
+plt.show()
