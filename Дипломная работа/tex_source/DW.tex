@@ -182,10 +182,10 @@
     L\{y_i\}=N_1(f(x_i;\beta), \sigma^2).
 \end{eqnarray}
 Логарифмическая функция правдоподобия выглядит так\cite{Kharin}:
-\begin{gather}
-    l(\beta)=\ln \prod_{i=1}^{n}(\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(y_i-f(x_i;\beta))^2}{2\sigma^2}})=-\frac{1}{2}n\ln{2\pi\sigma^2}-\frac{1}{2\sigma^2}R^2(\beta),\\
-    R^2(\beta)=\sum_{i=1}^{n}(\delta y_i)^2=\sum_{i=1}^{n}(y_i-f(x_i,\beta))^2\geq 0.
-\end{gather}
+\begin{eqnarray}
+    l(\beta)=\ln \prod_{i=1}^{n}(\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(y_i-f(x_i;\beta))^2}{2\sigma^2}})&=&-\frac{1}{2}n\ln{2\pi\sigma^2}-\frac{1}{2\sigma^2}R^2(\beta),\\
+    R^2(\beta)=\sum_{i=1}^{n}(\delta y_i)^2&=&\sum_{i=1}^{n}(y_i-f(x_i,\beta))^2\geq 0.
+\end{eqnarray}
 Тогда оценка методом наименьших квадратов из формул (\ref{eq4}), (\ref{eq5}) такова:
 \begin{eqnarray}
     \hat{\beta}=arg \min_{\beta}R^2(\beta).
@@ -232,17 +232,18 @@
 \end{center}
 \newpage
 
-\section{Построение оценки параметров регресии с помощью группирования выборки}\label{sec4}
+\section{Построение оценок параметров регресии с помощью группирования выборки}\label{sec4}
 Будем работать с моделью регрессии (\ref{eq3}), предполагая что имеем регрессию без выбросов (\ref{eq1}). 
 
-Функцию распределения нормального закона с параметрами $\mu,\sigma^2$ можно представить как:
-\begin{eqnarray}
-    F(x)=\Phi(\frac{x-\mu}{\sigma}),
-\end{eqnarray}
-где $\Phi(x)$ функция распределения стандартного нормального закона, а $\sigma = \sqrt{\sigma^2}$:
+Введем обозначение для функции распределения стандартного нормального закона:
 \begin{eqnarray}
     \Phi(x)=\frac{1}{\sqrt{2}\sigma}\int_{-\infty}^{x}e^{\frac{-t^2}{2}}dt.
 \end{eqnarray}
+Тогда функцию распределения нормального закона с параметрами $\mu,\sigma^2$ можно представить как:
+\begin{eqnarray}
+    F(x)=\Phi(\frac{x-\mu}{\sigma}),
+\end{eqnarray}
+где $\sigma = \sqrt{\sigma^2}$. \hfill\break
 Обозначим:
 \begin{eqnarray}
     \textup{erf}(x)=\frac{2}{\sqrt{\pi}}\int_0^{x}e^{-t^2}dt.
@@ -256,31 +257,29 @@
     F(x)= \frac{1}{2} \Big[1+\textup{erf}\Big(\frac{x-\mu}{\sqrt{2}\sigma} \Big) \Big].
 \end{eqnarray}
 При модельных предположениях (\ref{eq12}) вероятность попадания $y_i$ в полуинтервал $\nu_j$ равна:
-\begin{eqnarray}
-    P\{y_i\in\nu_j\}= F_{y_i}(a_{j+1})-F_{y_i}(a_{j})=
-\end{eqnarray}
-\begin{eqnarray*}
-    =
-    \begin{cases}
+\begin{multline}
+    P\{y_i\in\nu_j\}= F_{y_i}(a_{j+1})-F_{y_i}(a_{j})=\\
+    =\begin{cases}
         \frac{1}{2}(\textup{erf}(\frac{a_{j+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{j}-f(x_i,\beta)}{\sqrt{2}\sigma})),~j=\overline{1,k-2}\\
         \frac{1}{2}(1+\textup{erf}(\frac{a_{1}-f(x_i,\beta)}{\sqrt{2}\sigma})),~j=0\\
         \frac{1}{2}(1+\textup{erf}(\frac{a_{k-1}-f(x_i,\beta)}{\sqrt{2}\sigma})),~j=k-1
     \end{cases}.
-\end{eqnarray*}
+\end{multline}
 Понятно, что:
 \begin{eqnarray}
     P(\mu_i=j)=P(y_i\in \nu_{\mu_i}).
 \end{eqnarray}
+
 \subsection{Построение функции правдоподобия}\label{sec4_1}
 Составим функцию правдоподобия:
 \begin{eqnarray}
-    \label{eq22}l(\beta,\sigma^2, \nu_0,\dots, \nu_{k-1})=\textup{ln}(\prod_{i=1}^{n}P(\mu_i=j))=\\
-    \label{eq23}=\sum_{i=1}^{n}\ln(P(\mu_i=j)).
+    \label{eq22}l(\beta,\sigma^2, \nu_0,\dots, \nu_{k-1})&=&\textup{ln}(\prod_{i=1}^{n}P(\mu_i=j))=\\
+    \label{eq23}&=&\sum_{i=1}^{n}\ln(P(\mu_i=j)).
 \end{eqnarray}
 Известно приближение для функции $\textup{erf}(x)$:
 \begin{eqnarray}
-    \label{eq24}(\textup{erf} x)^2\approx 1- \exp(-x^2 \frac{\frac{4}{\pi}+ax^2}{1+ax^2}),\\
-    a=\frac{8}{3\pi}\frac{3-\pi}{\pi -4}.
+    \label{eq24}(\textup{erf} x)^2&\approx& 1- \exp(-x^2 \frac{\frac{4}{\pi}+ax^2}{1+ax^2}),\\
+    \nonumber a&=&\frac{8}{3\pi}\frac{3-\pi}{\pi -4}.
 \end{eqnarray}
 Оно считается достаточно точным для $x$ близких к $0$ и к $\infty$ \cite{Winitzki}. \hfill\break
 Найдем производную для этого приближения:
@@ -288,12 +287,16 @@
     \label{eq26}\textup{erf}'(x) = \exp(-x^2 \frac{\frac{4}{\pi}+ax^2}{1+ax^2}) \frac{-2x\frac{\frac{4}{\pi}+ax^2}{1+ax^2}+(2ax^3)\frac{\frac{4}{\pi}+ax^2}{1+ax^2}-\frac{2ax^3}{1+ax^2}}{2\sqrt{1- \exp(-x^2 \frac{\frac{4}{\pi}+ax^2}{1+ax^2})}}.
 \end{eqnarray}
 Будем максимизировать функцию $l$.
-Для этого будем искать нули ее производной. Вычисление будем производить с помощью вычислительных методов (будем использовать метод секущих), так как из-за сложного вида производной вычислить ее аналитически не представляется возможным.
+Для этого будем искать нули ее производной. Вычисление будем производить с помощью вычислительных методов (будем использовать метод секущих), так как из-за сложного
+вида производной вычислить ее аналитически не представляется возможным.
 \begin{multline}
     \label{eq27}\frac{\delta l}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln(P(\mu_i=j))}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln P(y_i\in \nu_{\mu_i})}{\delta \beta}=~\\
     =\frac{\delta \sum_{i=1}^{n} \ln(\frac{1}{2}(\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})) )         }{\delta \beta}=~\\
     =  \sum_{i=1}^{n}\Big((1-(\delta_{\mu_i 0}+\delta_{\mu_i k-1}))\frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}+~\\
-    +(\delta_{\mu_i 0}+\delta_{\mu_i k-1})\frac{\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})}{(1+\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}\Big)  (-1) \frac{\delta f(x_i,\beta)}{\delta \beta} )=~\\
+    +(\delta_{\mu_i 0}+\delta_{\mu_i k-1})\frac{\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})}{(1+\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}\Big)  (-1) \frac{\delta f(x_i,\beta)}{\delta \beta} )=~
+\end{multline}
+\begin{multline}
+    \nonumber 
     =-\sum_{i=1}^{n}\begin{pmatrix}
         1\\
         x_{i1}\\
@@ -302,8 +305,10 @@
     \end{pmatrix}\times  \Big((1-(\delta_{\mu_i 0}+\delta_{\mu_i k-1}))\frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}+~\\
     +(\delta_{\mu_i 0}+\delta_{\mu_i k-1})\frac{\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})}{(1+\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}\Big)  ,~
 \end{multline}
-где $\delta_{ij}$ - символ Кронекера.\hfill\break
-Доказано, что максимизируя функцию правдоподобия (\ref{eq22}), можем получить состоятельную оценку\cite{OLSforGrouping} параметров. \hfill\break
+где $\delta_{ij}$ - символ Кронекера.
+
+Доказано, что максимизируя функцию правдоподобия (\ref{eq22}), можем получить состоятельную оценку\cite{OLSforGrouping} параметров.
+
 Итак, выражение (\ref{eq27}) и будем использовать для метода дихотомии, приближая $\textup{erf}'(x)$ с помощью выражения (\ref{eq26}).
 
 \subsection{Метод секущих}\label{sec4_2}
