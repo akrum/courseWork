@@ -8,9 +8,12 @@ from py_grouping_estimates import groupingEstimates
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
-SAMPLE_SIZE_STEP = 10
+SAMPLE_SIZE = 100
 PLOT_SIZE = 40
-MEANING_FACTOR = 4
+
+
+def alarm_handler(signum, frame):
+    raise Exception("function timeout")
 
 
 def modulate_regression(regression_sample_quintity, regression_outlier_percentage):
@@ -30,32 +33,45 @@ def modulate_regression(regression_sample_quintity, regression_outlier_percentag
 
 
 if __name__ == "__main__":
-    differences = []
-    sample_sizes = []
+    first_coordinates_with_classification = []
+    second_coordinates_with_classification = []
+    first_coordinates_without_classification = []
+    second_coordinates_without_classification = []
 
-    for i in range(0, PLOT_SIZE):
+    for iter_time in range(0, PLOT_SIZE):
         try:
-            this_samle_size = 80 + i * SAMPLE_SIZE_STEP
-            x_points, y_points = modulate_regression(this_samle_size, OUTLIER_PERCENTAGE)
-            difference = 0.0
+            x_points, y_points = modulate_regression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
 
-            for j in range(0, MEANING_FACTOR):
-                APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
-                t_result = APPROXIMATION_MODEL.fit()
-                difference += np.linalg.norm(t_result-ACCURATE_RESULT)
+            APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
+            t_result_without = APPROXIMATION_MODEL.fit_without_reclassification()
 
-            differences.append(difference / MEANING_FACTOR)
-            sample_sizes.append(this_samle_size)
+            APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
+            t_result_with = APPROXIMATION_MODEL.fit()
+
+            first_coordinates_without_classification.append(t_result_without[0])
+            second_coordinates_without_classification.append(t_result_without[1])
+
+            first_coordinates_with_classification.append(t_result_with[0])
+            second_coordinates_with_classification.append(t_result_with[1])
         except np.linalg.linalg.LinAlgError as e:
             print(e)
         except StopIteration as e:
             print(e)
 
 
-    plt.title("Зависимость точности от размера выборки")
-    plt.xlabel("размер выборки")
-    plt.ylabel("расстояние до истинного значения")
-    # plt.axis([80, 100, 3, 5])
+    plt.title("Оценки вектора 90, 4")
+    plt.xlabel("beta_0")
+    plt.ylabel("beta_1")
+    plt.axis([80, 100, 3, 5])
 
-    sns.lineplot(sample_sizes, differences)
+    with_class = plt.scatter(first_coordinates_without_classification, second_coordinates_without_classification, color="green", marker="s")
+    without_class = plt.scatter(first_coordinates_with_classification, second_coordinates_with_classification, color="blue", marker="x")
+    accurate = plt.scatter(list(ACCURATE_RESULT[0]), list(ACCURATE_RESULT[1]), color="red", marker="^")
+
+    plt.legend((with_class, without_class, accurate),
+               ('с классификацией', 'без классификации', 'истинное значение'),
+               scatterpoints=1,
+               loc='lower left',
+               ncol=3,
+               fontsize=8)
     plt.show()
