@@ -1,15 +1,16 @@
 import random
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 from py_grouping_estimates import groupingEstimates
 
 
-ACCURATE_RESULT = np.matrix([90, 4]).T
+ACCURATE_RESULT = np.matrix([90, 4, 7]).T
 OUTLIER_PERCENTAGE = 8.0
 SAMPLE_SIZE = 100
-PLOT_SIZE = 40
+PLOT_SIZE = 30
 
 
 def alarm_handler(signum, frame):
@@ -35,8 +36,10 @@ def modulate_regression(regression_sample_quintity, regression_outlier_percentag
 if __name__ == "__main__":
     first_coordinates_with_classification = []
     second_coordinates_with_classification = []
+    third_coordinates_with_classification = []
     first_coordinates_without_classification = []
     second_coordinates_without_classification = []
+    third_coordinates_without_classification = []
 
     for iter_time in range(0, PLOT_SIZE):
         try:
@@ -50,28 +53,31 @@ if __name__ == "__main__":
 
             first_coordinates_without_classification.append(t_result_without[0])
             second_coordinates_without_classification.append(t_result_without[1])
+            third_coordinates_without_classification.append(t_result_without[2])
 
             first_coordinates_with_classification.append(t_result_with[0])
             second_coordinates_with_classification.append(t_result_with[1])
+            third_coordinates_with_classification.append(t_result_with[2])
         except np.linalg.linalg.LinAlgError as e:
             print(e)
         except StopIteration as e:
             print(e)
 
-
-    plt.title("Оценки вектора 90, 4")
-    plt.xlabel("beta_0")
-    plt.ylabel("beta_1")
-    plt.axis([80, 100, 3, 5])
-
-    with_class = plt.scatter(first_coordinates_without_classification, second_coordinates_without_classification, color="green", marker="s")
-    without_class = plt.scatter(first_coordinates_with_classification, second_coordinates_with_classification, color="blue", marker="x")
-    accurate = plt.scatter(list(ACCURATE_RESULT[0]), list(ACCURATE_RESULT[1]), color="red", marker="^")
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    ax.set_title("Оценки вектора [90, 4, 7]")
+    ax.set_xlabel("beta_0")
+    ax.set_ylabel("beta_1")
+    ax.set_zlabel("beta_2")
+    # ax.set_ax([80, 100, 3, 5, 6, 8])
+    without_class = ax.scatter(first_coordinates_without_classification, second_coordinates_without_classification, third_coordinates_without_classification, color="green", marker="x")
+    with_class = ax.scatter(first_coordinates_with_classification, second_coordinates_with_classification, third_coordinates_with_classification, color="blue", marker="s")
+    accurate = ax.scatter(list(ACCURATE_RESULT[0]), list(ACCURATE_RESULT[1]), list(ACCURATE_RESULT[2]), color="red", marker="^")
 
     plt.legend((with_class, without_class, accurate),
-               ('с классификацией', 'без классификации', 'истинное значение'),
+               ('с переклассификацией', 'без переклассификации', 'истинное значение'),
                scatterpoints=1,
                loc='lower left',
                ncol=3,
-               fontsize=8)
+               fontsize=6)
     plt.show()
