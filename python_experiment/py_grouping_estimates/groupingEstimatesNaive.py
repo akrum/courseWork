@@ -24,3 +24,6 @@ class ApproximationGEMModelNaive(ApproximationGEMModelRedesigned):
         z, resid, rank, sigma = np.linalg.lstsq(self.exogen, naive_ex_data_full, rcond=None)
         return z
 
+
+def GEM_N(exogen_data, endogen_data, *args):
+    return ApproximationGEMModelNaive(exogen_data, endogen_data)
