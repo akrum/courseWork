@@ -251,7 +251,7 @@ class ApproximationGEMModelRedesigned():
         # FOR DEBUG #
         #############
 
-        # return self.fit_intercept(beta_hat=t_beta_hat, beta_hat_next=t_beta_hat_next)
+        return self.fit_intercept(beta_hat=t_beta_hat, beta_hat_next=t_beta_hat_next)
 
         #############
         # FOR DEBUG #

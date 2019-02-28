@@ -3,6 +3,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import seaborn as sns
+import big_data_runner
 
 from py_grouping_estimates import groupingEstimates
 
@@ -33,7 +34,7 @@ def modulate_regression(regression_sample_quintity, regression_outlier_percentag
     return _x_points, _y_points
 
 
-if __name__ == "__main__":
+def with_without_reclassification():
     first_coordinates_with_classification = []
     second_coordinates_with_classification = []
     third_coordinates_with_classification = []
@@ -70,9 +71,12 @@ if __name__ == "__main__":
     ax.set_ylabel("beta_1")
     ax.set_zlabel("beta_2")
     # ax.set_ax([80, 100, 3, 5, 6, 8])
-    without_class = ax.scatter(first_coordinates_without_classification, second_coordinates_without_classification, third_coordinates_without_classification, color="green", marker="x")
-    with_class = ax.scatter(first_coordinates_with_classification, second_coordinates_with_classification, third_coordinates_with_classification, color="blue", marker="s")
-    accurate = ax.scatter(list(ACCURATE_RESULT[0]), list(ACCURATE_RESULT[1]), list(ACCURATE_RESULT[2]), color="red", marker="^")
+    without_class = ax.scatter(first_coordinates_without_classification, second_coordinates_without_classification,
+                               third_coordinates_without_classification, color="green", marker="x")
+    with_class = ax.scatter(first_coordinates_with_classification, second_coordinates_with_classification,
+                            third_coordinates_with_classification, color="blue", marker="s")
+    accurate = ax.scatter(list(ACCURATE_RESULT[0]), list(ACCURATE_RESULT[1]), list(ACCURATE_RESULT[2]), color="red",
+                          marker="^")
 
     plt.legend((with_class, without_class, accurate),
                ('с переклассификацией', 'без переклассификации', 'истинное значение'),
@@ -81,3 +85,7 @@ if __name__ == "__main__":
                ncol=3,
                fontsize=6)
     plt.show()
+
+
+if __name__ == "__main__":
+    with_without_reclassification()

@@ -1,4 +1,5 @@
 import random
+import os
 
 import numpy as np
 
@@ -9,9 +10,10 @@ ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
 SECONDS_TIMEOUT = 60 * 5
 SAMPLE_SIZE_MIN = 100
-SAMPLE_SIZE_MAX = 1000
+SAMPLE_SIZE_MAX = 2000
 SAMPLE_SIZE_STEP = 100
 np.seterr(all='raise')
+NP_DATA_PATH = "./np_data_created/"
 
 
 def alarm_handler(signum, frame):
@@ -34,7 +36,7 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
     return _x_points, _y_points
 
 
-def fit_and_print():
+def fit_data_naive_classic():
     sample_sizes = []
     all_results_classic = []
     all_results_naive = []
@@ -55,11 +57,13 @@ def fit_and_print():
             quit()
         except Exception as e:
             print(e)
-    np.save("./gem_res_classic", all_results_classic)
-    np.save("./gem_res_naive", all_results_naive)
-    np.save("./gem_sizes", sample_sizes)
+    np.save(NP_DATA_PATH + "gem_res_classic", all_results_classic)
+    np.save(NP_DATA_PATH + "gem_res_naive", all_results_naive)
+    np.save(NP_DATA_PATH + "gem_sizes", sample_sizes)
 
 
 if __name__ == "__main__":
-    fit_and_print()
+    if not os.path.exists(NP_DATA_PATH):
+        os.makedirs(NP_DATA_PATH)
+    fit_data_naive_classic()
     quit()
