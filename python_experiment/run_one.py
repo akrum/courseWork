@@ -31,7 +31,7 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
     return _x_points, _y_points
 
 
-def modulatePolynomialRegression(regression_sample_quintity, regression_outlier_percentage):
+def modulate_polynomial_regression(regression_sample_quintity, regression_outlier_percentage):
     regression_parameters = ACCURATE_RESULT
     _x_points = np.zeros(shape=[regression_sample_quintity, len(regression_parameters)])
     _y_points = np.zeros(shape=regression_sample_quintity)
@@ -54,7 +54,7 @@ def modulatePolynomialRegression(regression_sample_quintity, regression_outlier_
 
 
 def fit_and_print():
-    x_points, y_points = modulatePolynomialRegression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
+    x_points, y_points = modulateRegression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
     APPROXIMATION_MODEL = groupingEstimates.GEM(x_points, y_points)
     result = "GEM {}".format(APPROXIMATION_MODEL.fit())
     print(result)
