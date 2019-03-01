@@ -25,11 +25,11 @@ def fit_data_naive_classic_visualise():
 
     # plt.axis([0, 10.0, 0, sample_sizes[-1]])
     plot_classic, = plt.plot(sample_sizes,
-                            list(generate_differences(all_results_classic)),
-                            color="green")
+                             list(generate_differences(all_results_classic)),
+                             color="green")
     plot_naive, = plt.plot(sample_sizes,
-                          list(generate_differences(all_results_naive)),
-                          color="red")
+                           list(generate_differences(all_results_naive)),
+                           color="red")
 
     plt.legend((plot_classic, plot_naive),
                ('построенные оценки', 'МНК по средним'),

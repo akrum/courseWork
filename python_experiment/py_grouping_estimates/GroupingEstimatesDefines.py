@@ -4,7 +4,7 @@ import numpy as np
 
 class CreateDefines:
     METHOD_ACCURACY = 1e-7
-    INTERVAL_LENGTH = 1e-1
+    INTERVAL_LENGTH = 1e-2
     K_EVERY_SEGMENT = 50000000
     SIGMA_SQ = 225.0
     THREAD_JOIN_TIMEOUT = 10

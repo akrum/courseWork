@@ -54,6 +54,9 @@ def fit_data_naive_classic():
             sample_sizes.append(sample_size)
         except KeyboardInterrupt:
             print("stopping...")
+            np.save(NP_DATA_PATH + "gem_res_classic", all_results_classic)
+            np.save(NP_DATA_PATH + "gem_res_naive", all_results_naive)
+            np.save(NP_DATA_PATH + "gem_sizes", sample_sizes)
             quit()
         except Exception as e:
             print(e)
