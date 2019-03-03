@@ -39,6 +39,39 @@ def fit_data_naive_classic_visualise():
     plt.show()
 
 
+def plot_with_different_sample_size_visualize():
+    sample_sizes = np.load(NP_DATA_PATH + "gem_sizes_with_without.npy")
+    all_results_with = np.load(NP_DATA_PATH + "gem_res_with.npy")
+    all_results_without = np.load(NP_DATA_PATH + "gem_res_without.npy")
+
+    print(sample_sizes)
+    print(all_results_with)
+    print(all_results_without)
+
+    plt.title("Сравнение аппроксимаций вкл/выкл классификацией")
+    plt.xlabel("размер выборки")
+    plt.ylabel("вариации оценок")
+
+    def generate_differences(_tarray):
+        for item in _tarray:
+            yield np.linalg.norm(big_data_runner.ACCURATE_RESULT - item)
+
+    # plt.axis([0, 10.0, 0, sample_sizes[-1]])
+    plot_with, = plt.plot(sample_sizes,
+                          list(generate_differences(all_results_with)),
+                          color="green")
+    plot_without, = plt.plot(sample_sizes,
+                             list(generate_differences(all_results_without)),
+                             color="red")
+
+    plt.legend((plot_with, plot_without),
+               ('с классификацией', 'без классификации'),
+               loc='lower left',
+               ncol=3,
+               fontsize=8)
+    plt.show()
+
+
 if __name__ == "__main__":
     fit_data_naive_classic_visualise()
 

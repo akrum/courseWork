@@ -65,6 +65,34 @@ def fit_data_naive_classic():
     np.save(NP_DATA_PATH + "gem_sizes", sample_sizes)
 
 
+def plot_with_different_sample_size():
+    sample_sizes = []
+    all_results_with_classification = []
+    all_results_without_classification = []
+    for sample_size in range(SAMPLE_SIZE_MIN, SAMPLE_SIZE_MAX+1, SAMPLE_SIZE_STEP):
+        x_points, y_points = modulateRegression(sample_size, OUTLIER_PERCENTAGE)
+        approx_model = groupingEstimates.GEM(x_points, y_points)
+        try:
+            result = approx_model.fit()
+            print("GEM {}".format(result))
+            result_without = approx_model.fit_without_reclassification()
+            print("GEM_without {}".format(result_without))
+            all_results_with_classification.append(result)
+            all_results_without_classification.append(result_without)
+            sample_sizes.append(sample_size)
+        except KeyboardInterrupt:
+            print("stopping...")
+            np.save(NP_DATA_PATH + "gem_res_with", all_results_with_classification)
+            np.save(NP_DATA_PATH + "gem_res_without", all_results_without_classification)
+            np.save(NP_DATA_PATH + "gem_sizes_with_without", sample_sizes)
+            quit()
+        except Exception as e:
+            print(e)
+    np.save(NP_DATA_PATH + "gem_res_with", all_results_with_classification)
+    np.save(NP_DATA_PATH + "gem_res_without", all_results_without_classification)
+    np.save(NP_DATA_PATH + "gem_sizes_with_without", sample_sizes)
+
+
 if __name__ == "__main__":
     if not os.path.exists(NP_DATA_PATH):
         os.makedirs(NP_DATA_PATH)
