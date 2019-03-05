@@ -15,7 +15,7 @@ def fit_data_naive_classic_visualise():
     print(all_results_classic)
     print(all_results_naive)
 
-    plt.title("Сравнение аппроксимации с простейшей")
+    plt.title("Сравнение аппроксимации с МНК по средним")
     plt.xlabel("размер выборки")
     plt.ylabel("вариации оценок")
 
@@ -23,7 +23,7 @@ def fit_data_naive_classic_visualise():
         for item in _tarray:
             yield np.linalg.norm(big_data_runner.ACCURATE_RESULT - item)
 
-    # plt.axis([0, 10.0, 0, sample_sizes[-1]])
+    plt.axis([0, sample_sizes[-1], 0, 10.0])
     plot_classic, = plt.plot(sample_sizes,
                              list(generate_differences(all_results_classic)),
                              color="green")
@@ -48,7 +48,7 @@ def plot_with_different_sample_size_visualize():
     print(all_results_with)
     print(all_results_without)
 
-    plt.title("Сравнение аппроксимаций вкл/выкл классификацией")
+    plt.title("Сравнение аппроксимаций c вкл/выкл классификацией")
     plt.xlabel("размер выборки")
     plt.ylabel("вариации оценок")
 
@@ -56,7 +56,7 @@ def plot_with_different_sample_size_visualize():
         for item in _tarray:
             yield np.linalg.norm(big_data_runner.ACCURATE_RESULT - item)
 
-    # plt.axis([0, 10.0, 0, sample_sizes[-1]])
+    plt.axis([0, sample_sizes[-1], 0, 10.0])
     plot_with, = plt.plot(sample_sizes,
                           list(generate_differences(all_results_with)),
                           color="green")
@@ -73,6 +73,6 @@ def plot_with_different_sample_size_visualize():
 
 
 if __name__ == "__main__":
-    fit_data_naive_classic_visualise()
+    plot_with_different_sample_size_visualize()
 
     quit()
