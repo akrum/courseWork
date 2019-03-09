@@ -5,6 +5,7 @@ import numpy as np
 
 from py_grouping_estimates import groupingEstimates
 from py_grouping_estimates import groupingEstimatesNaive
+from py_grouping_estimates import GroupingEstimatesDefines
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
@@ -101,6 +102,37 @@ def plot_with_different_sample_size():
     np.save(NP_DATA_PATH + "gem_res_with", all_results_with_classification)
     np.save(NP_DATA_PATH + "gem_res_without", all_results_without_classification)
     np.save(NP_DATA_PATH + "gem_sizes_with_without", sample_sizes)
+
+
+def plot_with_different_reclassification_level():
+    reclassification_levels = []
+    all_results_with_classification = []
+    recl_level_min = 10
+    recl_level_max = 40
+    for recl_level in range(recl_level_min, recl_level_max + 1, 2):
+        GroupingEstimatesDefines.RECLASSIFICATION_LEVEL = recl_level
+
+        successful_fit = False
+        while not successful_fit:
+            x_points, y_points = modulateRegression(500, OUTLIER_PERCENTAGE)
+            approx_model = groupingEstimates.GEM(x_points, y_points)
+            try:
+                result = approx_model.fit()
+                print("GEM {}".format(result))
+
+                successful_fit = True
+
+                all_results_with_classification.append(result)
+                reclassification_levels.append(recl_level)
+            except KeyboardInterrupt:
+                print("stopping...")
+                np.save(NP_DATA_PATH + "gem_with_dif_level_results", all_results_with_classification)
+                np.save(NP_DATA_PATH + "gem_with_dif_level_levels", reclassification_levels)
+                quit()
+            except Exception as e:
+                print(e)
+    np.save(NP_DATA_PATH + "gem_with_dif_level_results", all_results_with_classification)
+    np.save(NP_DATA_PATH + "gem_with_dif_level_levels", reclassification_levels)
 
 
 if __name__ == "__main__":

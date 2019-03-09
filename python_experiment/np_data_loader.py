@@ -72,7 +72,35 @@ def plot_with_different_sample_size_visualize():
     plt.show()
 
 
+def plot_with_different_reclassification_level():
+    reclassification_levels = np.load(NP_DATA_PATH + "gem_with_dif_level_results.npy")
+    all_results_with_classification = np.load(NP_DATA_PATH + "gem_with_dif_level_levels.npy")
+
+    print(reclassification_levels)
+    print(all_results_with_classification)
+
+    plt.title("Сравнение с разным уровнем классификации")
+    plt.xlabel("уровень классификации")
+    plt.ylabel("вариации оценок")
+
+    def generate_differences(_tarray):
+        for item in _tarray:
+            yield np.linalg.norm(big_data_runner.ACCURATE_RESULT - item)
+
+    plt.axis([0, reclassification_levels[-1], 0, 10.0])
+    plot_with, = plt.plot(reclassification_levels,
+                          list(generate_differences(all_results_with_classification)),
+                          color="green")
+
+    plt.legend(plot_with,
+               'полученная оценка',
+               loc='lower left',
+               ncol=3,
+               fontsize=8)
+    plt.show()
+
+
 if __name__ == "__main__":
-    plot_with_different_sample_size_visualize()
+    fit_data_naive_classic_visualise()
 
     quit()
