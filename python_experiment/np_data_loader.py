@@ -101,6 +101,6 @@ def plot_with_different_reclassification_level():
 
 
 if __name__ == "__main__":
-    fit_data_naive_classic_visualise()
+    plot_with_different_sample_size_visualize()
 
     quit()

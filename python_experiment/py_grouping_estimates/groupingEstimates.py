@@ -144,10 +144,10 @@ class ApproximationGEMModelRedesigned():
 
     def classify(self):
         if self._np_freq_positive is not None:
-            print("fit: classified yet")
+            print("fit: classified yet positive")
             return
         if self._np_freq_negative is not None:
-            print("fit: classified yet")
+            print("fit: classified yet negative")
             return
         self._np_freq_positive = [None for i in range(self.endogen.size)]
         self._np_freq_negative = [None for i in range(self.endogen.size)]

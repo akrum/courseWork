@@ -75,10 +75,25 @@ def plot_with_different_sample_size():
     sample_sizes = []
     all_results_with_classification = []
     all_results_without_classification = []
+
+    x_points = None
+    y_points = None
+
     for sample_size in range(SAMPLE_SIZE_MIN, SAMPLE_SIZE_MAX+1, SAMPLE_SIZE_STEP):
         successful_fit = False
         while not successful_fit:
-            x_points, y_points = modulateRegression(sample_size, OUTLIER_PERCENTAGE)
+            x_points_t, y_points_t = modulateRegression(sample_size, OUTLIER_PERCENTAGE)
+
+            if x_points is None or y_points is None:
+                x_points = x_points_t
+                y_points = y_points_t
+            else:
+                x_points = np.append(x_points, x_points_t, axis=0)
+                y_points = np.append(y_points, y_points_t, axis=0)
+
+                print(x_points)
+                print(y_points)
+
             approx_model = groupingEstimates.GEM(x_points, y_points)
             try:
                 result = approx_model.fit()
@@ -138,5 +153,5 @@ def plot_with_different_reclassification_level():
 if __name__ == "__main__":
     if not os.path.exists(NP_DATA_PATH):
         os.makedirs(NP_DATA_PATH)
-    fit_data_naive_classic()
+    plot_with_different_sample_size()
     quit()
