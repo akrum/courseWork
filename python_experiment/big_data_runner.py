@@ -91,9 +91,6 @@ def plot_with_different_sample_size():
                 x_points = np.append(x_points, x_points_t, axis=0)
                 y_points = np.append(y_points, y_points_t, axis=0)
 
-                print(x_points)
-                print(y_points)
-
             approx_model = groupingEstimates.GEM(x_points, y_points)
             try:
                 result = approx_model.fit()
@@ -124,12 +121,14 @@ def plot_with_different_reclassification_level():
     all_results_with_classification = []
     recl_level_min = 10
     recl_level_max = 40
+
+    x_points, y_points = modulateRegression(500, OUTLIER_PERCENTAGE)
+
     for recl_level in range(recl_level_min, recl_level_max + 1, 2):
         GroupingEstimatesDefines.RECLASSIFICATION_LEVEL = recl_level
 
         successful_fit = False
         while not successful_fit:
-            x_points, y_points = modulateRegression(500, OUTLIER_PERCENTAGE)
             approx_model = groupingEstimates.GEM(x_points, y_points)
             try:
                 result = approx_model.fit()

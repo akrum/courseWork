@@ -73,8 +73,8 @@ def plot_with_different_sample_size_visualize():
 
 
 def plot_with_different_reclassification_level():
-    reclassification_levels = np.load(NP_DATA_PATH + "gem_with_dif_level_results.npy")
-    all_results_with_classification = np.load(NP_DATA_PATH + "gem_with_dif_level_levels.npy")
+    reclassification_levels = np.load(NP_DATA_PATH + "gem_with_dif_level_levels.npy")
+    all_results_with_classification = np.load(NP_DATA_PATH + "gem_with_dif_level_results.npy")
 
     print(reclassification_levels)
     print(all_results_with_classification)
