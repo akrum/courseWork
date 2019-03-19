@@ -15,18 +15,21 @@ def fit_data_naive_classic_visualise():
     print(all_results_classic)
     print(all_results_naive)
 
+    plt.axis([0, sample_sizes[-1], 0, 10.0])
+
     plt.title("Сравнение аппроксимации с МНК по средним")
     plt.xlabel("размер выборки")
     plt.ylabel("вариации оценок")
 
     def generate_differences(_tarray):
         for item in _tarray:
-            yield np.linalg.norm(big_data_runner.ACCURATE_RESULT - item)
+            yield np.linalg.norm(big_data_runner.ACCURATE_RESULT.T - item.T)
 
-    plt.axis([0, sample_sizes[-1], 0, 10.0])
     plot_classic, = plt.plot(sample_sizes,
                              list(generate_differences(all_results_classic)),
                              color="green")
+    plt.axis([0, sample_sizes[-1], 0.0, 10.0])
+
     plot_naive, = plt.plot(sample_sizes,
                            list(generate_differences(all_results_naive)),
                            color="red")
@@ -79,7 +82,7 @@ def plot_with_different_reclassification_level():
     print(reclassification_levels)
     print(all_results_with_classification)
 
-    plt.title("Сравнение с разным уровнем классификации")
+    plt.title("Сравнение разных уровней классификации")
     plt.xlabel("уровень классификации")
     plt.ylabel("вариации оценок")
 
@@ -92,11 +95,6 @@ def plot_with_different_reclassification_level():
                           list(generate_differences(all_results_with_classification)),
                           color="green")
 
-    plt.legend(plot_with,
-               'полученная оценка',
-               loc='lower left',
-               ncol=3,
-               fontsize=8)
     plt.show()
 
 
