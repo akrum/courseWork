@@ -1,0 +1,48 @@
+\begin{center}
+    \section*{ВВЕДЕНИЕ}
+\end{center}
+\phantomsection
+\addcontentsline{toc}{section}{ВВЕДЕНИЕ}
+
+Целью преддипломной практики было продолжение исследования и улучшение оценок, построенных в 
+курсовом проекте. Темой курсового проекта было \textit{"Статистическое оценивание параметров линейной регрессии с выбросами при наличии группирования наблюдений"}.
+
+Оценки были построенны с помощью максимизирования функции правдоподобия:
+\begin{eqnarray}
+    \label{eq22}l(\beta,\sigma^2, \nu_0,\dots, \nu_{k-1})&=&\textup{ln}(\prod_{i=1}^{n}P(\mu_i=j))=\\
+    \label{eq23}&=&\sum_{i=1}^{n}\ln(P(\mu_i=j)),
+\end{eqnarray}
+где:
+\begin{eqnarray}
+    P(\mu_i=j)=P(y_i\in \nu_{\mu_i}),
+\end{eqnarray}
+$y_i$ - значения функции регрессии, а $\nu_0,\dots,\nu_{k-1}$ - номера полуинтервалов, разбивающих множество значений функции регрессии:
+\begin{eqnarray}
+    \label{eq1}(-\infty,a_1]\bigcup(a_1,a_2]\bigcup \dots \bigcup(a_{k-1},+\infty )=\mathcal{R}
+\end{eqnarray}
+$\mu_i$ номер полуинтервала, в который он попал $y_i$.
+\begin{eqnarray}
+    \mu_i=j, \textup{если $y_i$ отнесли к полуинтервалу $\nu_j$}.
+\end{eqnarray}
+
+Задача максимизирования решала с помощью решения нелинейной системы уравнений:
+\begin{eqnarray}
+    \frac{\delta l}{\delta \beta} = 0,
+\end{eqnarray}
+где
+\begin{multline}
+    \label{eq27}\frac{\delta l}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln(P(\mu_i=j))}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln P(y_i\in \nu_{\mu_i})}{\delta \beta}=~\\
+    =\frac{\delta \sum_{i=1}^{n} \ln(\frac{1}{2}(\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})) )         }{\delta \beta}=~\\
+    =  \sum_{i=1}^{n}\Big((1-(\delta_{\mu_i 0}+\delta_{\mu_i k-1}))\frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}+~\\
+    +(\delta_{\mu_i 0}+\delta_{\mu_i k-1})\frac{\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})}{(1+\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}\Big)  (-1) \frac{\delta f(x_i,\beta)}{\delta \beta} )=~
+\end{multline}
+\begin{multline}
+    \nonumber 
+    =-\sum_{i=1}^{n}\begin{pmatrix}
+        1\\
+        x_{i1}\\
+        \dots\\
+        x_{in}
+    \end{pmatrix}\times  \Big((1-(\delta_{\mu_i 0}+\delta_{\mu_i k-1}))\frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}+~\\
+    +(\delta_{\mu_i 0}+\delta_{\mu_i k-1})\frac{\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})}{(1+\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}\Big).~
+\end{multline}

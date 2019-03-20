@@ -1,0 +1,103 @@
+
+
+\section{Изучение материала}
+В ходе выполнения преддипломной практики были изучены следующие источники:
+
+
+В источниках был встречен \textit{метод наименьших квадратов по центрам интервалов}.
+Метод заключается в следующем:
+пусть имеется $\mu_i$ - номер полуинтервала, в который попало очередное наблюдение $y_i$. Ему соответствует полуинтервал $\nu_{\mu_i}$ (см(\ref{eq1})), т.е. полуинтервал:
+\begin{eqnarray}
+    (a_{\nu_{\mu_i}},a_{\nu_{\mu_i}+1}],
+\end{eqnarray}
+(считаем что $a_1<y_i<a_{k-1}, i=\overline{1,n}$).
+
+Найдем центральную точку этого интервала, т.е. точку
+\begin{eqnarray}
+    \check{y_i} = \frac{a_{\nu_{\mu_i}} + a_{\nu_{\mu_i}+1}}{2}
+\end{eqnarray}
+
+Построим для всех значений функции регрессии $y_i$ значения $\check{y_i}$.
+Будем использовать в качестве значений функции регрессии полученные значений, а в качестве регрессоров $x_i$ и построим МНК оценки параметров $\beta$.
+
+\newpage
+\section{Реализация оценка}
+Описанные оценки были построены путем наследования от исходных оценок и переопределения соответствуюего метода fit(). 
+\begin{Verbatim}[fontsize=\scriptsize]
+class ApproximationGEMModelNaive(ApproximationGEMModelRedesigned):
+    def fit(self):
+        self.classify()
+
+        def ex_generator(mu_data):
+            for i in range(0, self.endogen.size):
+                if mu_data[i] is None:
+                    continue
+                a_mu_i_plus_1 = mu_data[i] * Defines.INTERVAL_LENGTH
+                a_mu_i = mu_data[i] * Defines.INTERVAL_LENGTH - Defines.INTERVAL_LENGTH
+                yield (a_mu_i_plus_1 + a_mu_i) / 2
+
+        naive_ex_data_positive = np.fromiter(ex_generator(self._np_freq_positive), float)
+        naive_ex_data_negative = np.fromiter(ex_generator(self._np_freq_negative), float)
+
+        naive_ex_data_full = np.append(naive_ex_data_positive, naive_ex_data_negative)
+
+        z, resid, rank, sigma = np.linalg.lstsq(self.exogen, naive_ex_data_full, rcond=None)
+        return z
+\end{Verbatim}
+
+\newpage
+\section{Компьютерные эксперименты}
+\subsection{Параметры модели и оценок}
+\begin{center}
+    \begin{tabular}{|p{5cm}|p{5cm}|}
+        \hline
+        \multicolumn{2}{|c|}{Параметры программы} \\
+        \hline
+        Переменная&значение\\
+        \hline
+        Размер выборки $N$& 1000\\
+        \hline
+        Доля выбросов $\widetilde{\varepsilon}$& 0.8\\
+        \hline
+        Параметры регрессии $\beta$& $(90,4)$\\
+        \hline
+        Регрессоры $x_i$ & $\sim U(-5,5)$\\
+        \hline
+        $\varepsilon_i$&$\sim N(0,16)$\\
+        \hline
+        $\eta_i$&$\sim N(100,100)$\\
+        \hline
+        Величина $K$ из пункта 2.3 курсового проекта &$10$\\
+        \hline
+    \end{tabular},
+\end{center}
+
+\subsection{Сравнительный анализ построенной оценки с альтернативной}
+Если сравнить вариации оценок построенныхх на рис.\ref{pic1} можно увидеть, что оценки, построенные по методу, предложенному на курсовом проекте, показывают лучшие результаты
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=100mm]{../images/OLS_GEM.pdf}
+    \caption{Сравнение вариаций оценок\label{overflow}}
+    \label{pic1}
+\end{figure}
+
+\newpage
+\subsection{Дополнительные эксперименты}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=100mm]{../images/different_recl_level.pdf}
+    \caption{Зависимость от K, упомянотого в пункте 2.3 курсового проекта\label{overflow}}
+    \label{pic1}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=100mm]{../images/on_off_recl.pdf}
+    \caption{Сравнение вариаций оценок когда используется и не используется переклассификация\label{overflow}}
+    \label{pic1}
+\end{figure}
+
+\newpage
+
+\subsection{Использование полиномиальной регрессии}
+Несложно заметить, что построенные в курсовом проекте оценки никак не зависят от регрессоров, поэтому можно моделировать полиномиальную регрессию и применить к ней описанный метод.
