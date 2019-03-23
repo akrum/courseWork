@@ -382,5 +382,9 @@ class ApproximationGEMModelRedesigned():
         return result_to_return
 
 
-def GEM(exogen_data, endogen_data, *args):
+def GEM(exogen_data, endogen_data, *args, **kwargs):
+    if "recl_level" in kwargs:
+        print("gem: using recl level: {}".format(kwargs["recl_level"]))
+        Defines.RECLASSIFICATION_LEVEL = kwargs["recl_level"]
+
     return ApproximationGEMModelRedesigned(exogen_data, endogen_data)

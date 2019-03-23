@@ -37,6 +37,28 @@ def modulateRegression(regression_sample_quintity, regression_outlier_percentage
     return _x_points, _y_points
 
 
+def modulate_polynomial_regression(regression_sample_quintity, regression_outlier_percentage):
+    regression_parameters = ACCURATE_RESULT
+    _x_points = np.zeros(shape=[regression_sample_quintity, len(regression_parameters)])
+    _y_points = np.zeros(shape=regression_sample_quintity)
+
+    def np_random_polynomial(size):
+        _res = np.zeros(size)
+        for i in range(0, size):
+            _res[i] = random.uniform(-5, 5) ** (i + 1)
+
+        return _res
+
+    for i in range(0, regression_sample_quintity):
+        _x_points[i] = np.append(np.ones(1), np_random_polynomial(len(ACCURATE_RESULT) - 1))
+        if random.random() > regression_outlier_percentage / 100:
+            _y_points[i] = (_x_points[i] * ACCURATE_RESULT) + np.random.normal(0, 4)
+        else:
+            _y_points[i] = np.random.normal(100.0, 15.0, size=1)
+
+    return _x_points, _y_points
+
+
 def fit_data_naive_classic():
     sample_sizes = []
     all_results_classic = []
@@ -116,6 +138,40 @@ def plot_with_different_sample_size():
     np.save(NP_DATA_PATH + "gem_sizes_with_without", sample_sizes)
 
 
+def fit_data_naive_classic_polynomial():
+    sample_sizes = []
+    all_results_classic = []
+    all_results_naive = []
+    for sample_size in range(SAMPLE_SIZE_MIN, SAMPLE_SIZE_MAX+1, SAMPLE_SIZE_STEP):
+        successful_fit = False
+        while not successful_fit:
+            x_points, y_points = modulate_polynomial_regression(sample_size, OUTLIER_PERCENTAGE)
+            approx_model = groupingEstimates.GEM(x_points, y_points)
+            approx_model_naive = groupingEstimatesNaive.GEM_N(x_points, y_points)
+            try:
+                result = approx_model.fit()
+                print("GEM {}".format(result))
+                result_naive = approx_model_naive.fit()
+                print("GEM_N {}".format(result_naive))
+
+                successful_fit = True
+
+                all_results_classic.append(result)
+                all_results_naive.append(result_naive)
+                sample_sizes.append(sample_size)
+            except KeyboardInterrupt:
+                print("stopping...")
+                np.save(NP_DATA_PATH + "naive_classic_pol_res_classic", all_results_classic)
+                np.save(NP_DATA_PATH + "naive_classic_pol_res_naive", all_results_naive)
+                np.save(NP_DATA_PATH + "naive_classic_pol_sizes", sample_sizes)
+                quit()
+            except Exception as e:
+                print(e)
+    np.save(NP_DATA_PATH + "naive_classic_pol_res_classic", all_results_classic)
+    np.save(NP_DATA_PATH + "naive_classic_pol_res_naive", all_results_naive)
+    np.save(NP_DATA_PATH + "naive_classic_pol_sizes", sample_sizes)
+
+
 def plot_with_different_reclassification_level():
     reclassification_levels = []
     all_results_with_classification = []
@@ -125,11 +181,9 @@ def plot_with_different_reclassification_level():
     x_points, y_points = modulateRegression(500, OUTLIER_PERCENTAGE)
 
     for recl_level in range(recl_level_min, recl_level_max + 1, 2):
-        GroupingEstimatesDefines.RECLASSIFICATION_LEVEL = recl_level
-
         successful_fit = False
         while not successful_fit:
-            approx_model = groupingEstimates.GEM(x_points, y_points)
+            approx_model = groupingEstimates.GEM(x_points, y_points, recl_level=recl_level)
             try:
                 result = approx_model.fit()
                 print("GEM {}".format(result))
@@ -152,5 +206,5 @@ def plot_with_different_reclassification_level():
 if __name__ == "__main__":
     if not os.path.exists(NP_DATA_PATH):
         os.makedirs(NP_DATA_PATH)
-    plot_with_different_sample_size()
+    fit_data_naive_classic_polynomial()
     quit()
