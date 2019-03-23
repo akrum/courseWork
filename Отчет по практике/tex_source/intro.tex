@@ -7,42 +7,54 @@
 Целью преддипломной практики было продолжение исследования и улучшение оценок, построенных в 
 курсовом проекте. Темой курсового проекта было \textit{"Статистическое оценивание параметров линейной регрессии с выбросами при наличии группирования наблюдений"}.
 
-Оценки были построенны с помощью максимизирования функции правдоподобия:
+В ходе курсового проекта оценки строили для модели линейной регрессии с выбросами:
 \begin{eqnarray}
-    \label{eq22}l(\beta,\sigma^2, \nu_0,\dots, \nu_{k-1})&=&\textup{ln}(\prod_{i=1}^{n}P(\mu_i=j))=\\
-    \label{eq23}&=&\sum_{i=1}^{n}\ln(P(\mu_i=j)),
+    \label{eq3}y_i^{\widetilde{\varepsilon}}=(\xi_i)y_i+ (1-\xi_i)\eta_i,
 \end{eqnarray}
-где:
-\begin{eqnarray}
-    P(\mu_i=j)=P(y_i\in \nu_{\mu_i}),
+где $\xi_i$ принимает значение, равное 1, с вероятностью $1-\widetilde{\varepsilon}$ и значение, равное 0, с вероятностью $\widetilde{\varepsilon}$, т.е.:
+\begin{eqnarray}\label{eq4}
+    \begin{cases}
+        p(\xi_i=0)=\widetilde{\varepsilon},\\
+        p(\xi_i=1)=1-\widetilde{\varepsilon},
+    \end{cases},
 \end{eqnarray}
-$y_i$ - значения функции регрессии, а $\nu_0,\dots,\nu_{k-1}$ - номера полуинтервалов, разбивающих множество значений функции регрессии:
-\begin{eqnarray}
-    \label{eq1}(-\infty,a_1]\bigcup(a_1,a_2]\bigcup \dots \bigcup(a_{k-1},+\infty )=\mathcal{R}
-\end{eqnarray}
-$\mu_i$ номер полуинтервала, в который он попал $y_i$.
-\begin{eqnarray}
-    \mu_i=j, \textup{если $y_i$ отнесли к полуинтервалу $\nu_j$}.
-\end{eqnarray}
+$\eta_i$-случайная величина из некоторого вообще говоря неизвестного распределения.
 
-Задача максимизирования решала с помощью решения нелинейной системы уравнений:
+$y_i^{\widetilde{\varepsilon}}$ -- $i$-е наблюдение из $N$ наблюдений($N$-объем выборки), $x_i=(x_{i1},x_{i2},\dots,x_{in})$ регрессоры, \{$\beta_k, k=\overline{0,n}$\}-- параметры регрессии, а $\varepsilon_i$ -- случайная ошибка $i$-го эксперемента, распределение которой подчиняется нормальному закону с нулевым математическим ожиданием и дисперсией $\sigma^2$.
 \begin{eqnarray}
-    \frac{\delta l}{\delta \beta} = 0,
-\end{eqnarray}
-где
-\begin{multline}
-    \label{eq27}\frac{\delta l}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln(P(\mu_i=j))}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln P(y_i\in \nu_{\mu_i})}{\delta \beta}=~\\
-    =\frac{\delta \sum_{i=1}^{n} \ln(\frac{1}{2}(\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})) )         }{\delta \beta}=~\\
-    =  \sum_{i=1}^{n}\Big((1-(\delta_{\mu_i 0}+\delta_{\mu_i k-1}))\frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}+~\\
-    +(\delta_{\mu_i 0}+\delta_{\mu_i k-1})\frac{\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})}{(1+\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}\Big)  (-1) \frac{\delta f(x_i,\beta)}{\delta \beta} )=~
-\end{multline}
-\begin{multline}
-    \nonumber 
-    =-\sum_{i=1}^{n}\begin{pmatrix}
+    \label{eq2}y_i= 
+    \begin{pmatrix}
+        \beta_0\\
+        \beta_1\\
+        \dots\\
+        \beta_n
+    \end{pmatrix}\times
+    \begin{pmatrix}
         1\\
         x_{i1}\\
         \dots\\
         x_{in}
-    \end{pmatrix}\times  \Big((1-(\delta_{\mu_i 0}+\delta_{\mu_i k-1}))\frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}+~\\
-    +(\delta_{\mu_i 0}+\delta_{\mu_i k-1})\frac{\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})}{(1+\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}\Big).~
-\end{multline}
+    \end{pmatrix}^{T}+ \varepsilon_i,
+\end{eqnarray}
+
+Параметр $\xi_i$ имеет следующий содержательный смысл: если $\xi_i=0$, то вместо истинного значения мы наблюдаем выброс, если $\xi_i=1$, то наблюдается истинное значение.
+Переменную $\widetilde{\varepsilon}$ будем называть долей аномальных наблюдений. Величины $\xi_i, x_i$ и $\eta_i$ являются независимыми.
+
+Каждый $y_i$ принадлежит нормальному распределению:
+\begin{eqnarray}
+    \label{eq12} y_i=f(x_i,\beta)+\varepsilon_i \sim \mathcal{N}(f(x_i,\beta),\sigma^2).
+\end{eqnarray}
+
+Разделим множество значений функции регрессии, т.е множество $\mathcal{R}$, на $k$ полуинтервалов:
+\begin{eqnarray}
+    \mathcal{R}=(-\infty,a_1]\bigcup(a_1,a_2]\bigcup \dots \bigcup(a_{k-1},+\infty ).
+\end{eqnarray}
+Обозначим полученные интервалы: $\nu_0,\dots,\nu_{k-1}$.
+
+Далее в работе будем считать, что вместо истинных значений зависимых переменных $y_i$ наблюдается только номер класса, к которому это наблюдение попало.
+Тогда для каждого $y_i$ будем наблюдать лишь номер полуинтервала $\mu_i$, в который он попал.
+\begin{eqnarray}
+    \label{eq13}\mu_i=j, \textup{если $y_i$ отнесли к полуинтервалу $\nu_j$}.
+\end{eqnarray}
+
+В курсовом проекте решалась задача статистического оценивания параметров модели \{$\beta_k, k=\overline{0,n}$\} по известным группированным наблюдениям с аномалиями.

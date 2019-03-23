@@ -51,7 +51,7 @@ def plot_with_different_sample_size_visualize():
     print(all_results_with)
     print(all_results_without)
 
-    plt.title("Сравнение аппроксимаций c вкл/выкл классификацией")
+    plt.title("Сравнение аппроксимаций c вкл/выкл переклассификацией")
     plt.xlabel("размер выборки")
     plt.ylabel("вариации оценок")
 
