@@ -142,23 +142,38 @@ def fit_data_naive_classic_polynomial():
     sample_sizes = []
     all_results_classic = []
     all_results_naive = []
+
+    x_points = None
+    y_points = None
+
     for sample_size in range(SAMPLE_SIZE_MIN, SAMPLE_SIZE_MAX+1, SAMPLE_SIZE_STEP):
+        print("fitting with sample size: {}".format(sample_size))
+
         successful_fit = False
         while not successful_fit:
-            x_points, y_points = modulate_polynomial_regression(sample_size, OUTLIER_PERCENTAGE)
-            approx_model = groupingEstimates.GEM(x_points, y_points)
-            approx_model_naive = groupingEstimatesNaive.GEM_N(x_points, y_points)
+            x_points_t, y_points_t = modulate_polynomial_regression(sample_size, OUTLIER_PERCENTAGE)
+
+            if x_points is not None and y_points is not None:
+                x_points_t = np.append(x_points, x_points_t, axis=0)
+                y_points_t = np.append(y_points, y_points_t, axis=0)
+
+            approx_model = groupingEstimates.GEM(x_points_t, y_points_t)
+            approx_model_naive = groupingEstimatesNaive.GEM_N(x_points_t, y_points_t)
             try:
                 result = approx_model.fit()
-                print("GEM {}".format(result))
+                print("GEM {}\n".format(result))
                 result_naive = approx_model_naive.fit()
-                print("GEM_N {}".format(result_naive))
+                print("GEM_N {}\n".format(result_naive))
 
                 successful_fit = True
 
                 all_results_classic.append(result)
                 all_results_naive.append(result_naive)
                 sample_sizes.append(sample_size)
+
+                x_points = x_points_t
+                y_points = y_points_t
+
             except KeyboardInterrupt:
                 print("stopping...")
                 np.save(NP_DATA_PATH + "naive_classic_pol_res_classic", all_results_classic)
