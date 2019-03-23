@@ -58,3 +58,35 @@ $y_i^{\widetilde{\varepsilon}}$ -- $i$-е наблюдение из $N$ набл
 \end{eqnarray}
 
 В курсовом проекте решалась задача статистического оценивания параметров модели \{$\beta_k, k=\overline{0,n}$\} по известным группированным наблюдениям с аномалиями.
+
+
+Для этого строилась функция правдоподобия:
+\begin{eqnarray}
+    \label{eq22}l(\beta,\sigma^2, \nu_0,\dots, \nu_{k-1})&=&\textup{ln}(\prod_{i=1}^{n}P(\mu_i=j))=\\
+    \label{eq23}&=&\sum_{i=1}^{n}\ln(P(\mu_i=j)).
+\end{eqnarray}
+
+Для максимизирования функции правдоподобия решалась система уравнения:
+\begin{equation}
+    \label{eq24}\frac{\delta l}{\delta \beta}=0,
+\end{equation}
+где:
+\begin{multline}
+    \label{eq27}\frac{\delta l}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln(P(\mu_i=j))}{\delta \beta}=\frac{\delta \sum_{i=1}^{n}\ln P(y_i\in \nu_{\mu_i})}{\delta \beta}=~\\
+    =\frac{\delta \sum_{i=1}^{n} \ln(\frac{1}{2}(\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})) )         }{\delta \beta}=~\\
+    =  \sum_{i=1}^{n}\Big((1-(\delta_{\mu_i 0}+\delta_{\mu_i k-1}))\frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}+~\\
+    +(\delta_{\mu_i 0}+\delta_{\mu_i k-1})\frac{\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})}{(1+\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}\Big)  (-1) \frac{\delta f(x_i,\beta)}{\delta \beta} )=~
+\end{multline}
+\begin{multline}
+    \nonumber 
+    =-\sum_{i=1}^{n}\begin{pmatrix}
+        1\\
+        x_{i1}\\
+        \dots\\
+        x_{in}
+    \end{pmatrix}\times  \Big((1-(\delta_{\mu_i 0}+\delta_{\mu_i k-1}))\frac{(\textup{erf'}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}{ (\textup{erf}(\frac{a_{\mu_i+1}-f(x_i,\beta)}{\sqrt{2}\sigma})-\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}+~\\
+    +(\delta_{\mu_i 0}+\delta_{\mu_i k-1})\frac{\textup{erf'}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma})}{(1+\textup{erf}(\frac{a_{\mu_i}-f(x_i,\beta)}{\sqrt{2}\sigma}))}\Big) .
+\end{multline}
+$\delta_{ij}$ - символ Кронекера.
+
+Уравнение (\ref{eq24}) решалось методом секущих.
