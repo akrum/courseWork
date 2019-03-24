@@ -7,7 +7,9 @@
     \item \label{en2}Interval linear regression methods based on minkowski difference. \cite{minkowski}
 \end{enumerate}
 
-В первом источнике \ref{en1} для каждого $x_{ij}$ имеется середина  и радиус интервала, в котором он лежимт. Соответственно, каждый $y_i$ определяется серединой некоторого интервала и его радиусом.
+В источнике \ref{en2} предлагаются методы линейной регрессии, основанные на метрике Минковского.
+
+В источнике \ref{en1} для каждого $x_{ij}$ имеется середина  и радиус интервала, в котором он лежит. Соответственно, каждый $y_i$ определяется серединой некоторого интервала и его радиусом.
 То есть:
 \begin{eqnarray}
     y_{i_M} = b_{M_0} + b_{M_1} x_{M_{i1}} + \dots + b_{M_n} x_{M_{in}} + \varepsilon_{M_i}\\
@@ -18,7 +20,10 @@
     \min_{b_{M_0},\dots,b_{M_n},b_{R_0}, \dots, b_{R_n}} \sum\limits_{i=1}^N [(\varepsilon_{M_i})^2 + (\varepsilon_{R_i})^2]
 \end{eqnarray}
 
-Рассмотрим более общий метод: \textit{метод наименьших квадратов по центрам интервалов}.
+
+\newpage
+\section{Реализация оценок}
+Пусть регрессоры нам известны точно. Рассмотрим \textit{метод наименьших квадратов по центрам интервалов}. 
 Метод заключается в следующем:
 пусть имеется $\mu_i$ - номер полуинтервала, в который попало очередное наблюдение $y_i$. Ему соответствует полуинтервал $\nu_{\mu_i}$ (см ф.\ref{eq13}), т.е. полуинтервал:
 \begin{eqnarray}
@@ -34,34 +39,13 @@
 Построим для всех значений функции регрессии $y_i$ значения $\check{y_i}$.
 Будем использовать в качестве значений функции регрессии полученные значений, а в качестве регрессоров $x_i$ и построим МНК оценки параметров $\beta$.
 
-\newpage
-\section{Реализация оценок}
 Описанный метод наименьших квадратов по центрам интервалов был построен путем наследования от исходных оценок и переопределения соответствуюего метода fit(). 
-\begin{Verbatim}[fontsize=\scriptsize]
-class ApproximationGEMModelNaive(ApproximationGEMModelRedesigned):
-    def fit(self):
-        self.classify()
 
-        def ex_generator(mu_data):
-            for i in range(0, self.endogen.size):
-                if mu_data[i] is None:
-                    continue
-                a_mu_i_plus_1 = mu_data[i] * Defines.INTERVAL_LENGTH
-                a_mu_i = mu_data[i] * Defines.INTERVAL_LENGTH - Defines.INTERVAL_LENGTH
-                yield (a_mu_i_plus_1 + a_mu_i) / 2
-
-        naive_ex_data_positive = np.fromiter(ex_generator(self._np_freq_positive), float)
-        naive_ex_data_negative = np.fromiter(ex_generator(self._np_freq_negative), float)
-
-        naive_ex_data_full = np.append(naive_ex_data_positive, naive_ex_data_negative)
-
-        z, resid, rank, sigma = np.linalg.lstsq(self.exogen, naive_ex_data_full, rcond=None)
-        return z
-\end{Verbatim}
 
 \newpage
 \section{Компьютерные эксперименты}
 \subsection{Параметры модели и оценок}
+В ходе экспериментов использовались следующие параметры модели:
 \begin{center}
     \begin{tabular}{|p{5cm}|p{5cm}|}
         \hline
@@ -85,19 +69,21 @@ class ApproximationGEMModelNaive(ApproximationGEMModelRedesigned):
         \hline
     \end{tabular},
 \end{center}
+\newpage
 
 \subsection{Сравнительный анализ построенной оценки с альтернативной}
 Если сравнить вариации оценок построенные на рис.\ref{pic1}, можно увидеть, что оценки, построенные по методу, предложенному в курсовом проекте, показывают лучшие результаты
+\vspace{4cm}
 \begin{figure}[h!]
     \centering
     \includegraphics[width=100mm]{../images/OLS_GEM.pdf}
     \caption{Сравнение вариаций оценок\label{overflow}}
-    \label{pic1}
+    \label{pic0}
 \end{figure}
 
 \newpage
 \subsection{Дополнительные эксперименты}
-\subsubsection{Эксперименты с переклассификацией выборки}
+\subsubsection{Эксперименты с переклассификацией выборки}\label{ss3_3_1}
 В построенном методе использовался метод $K$-соседей.
 
 На первом этапе для каждого $x_i$ имели класс $\mu_i$: т.е. пару $(x_i,\mu_i)$.
@@ -117,14 +103,15 @@ class ApproximationGEMModelNaive(ApproximationGEMModelRedesigned):
 Аналогично максимизировали ее и находили новую оценку параметров $\hat{\beta}$.
 
 В ходе преддипломной практики были построены эксперименты с изменением величины K для метода $K$-ближайших соседей, используемого в переклассификации. Параметры использовались такие же, как в ранее приведенной таблице.
-\begin{figure}[h!]
+\newpage
+\begin{figure}[ht!]
     \centering
     \includegraphics[width=100mm]{../images/different_recl_level.pdf}
     \caption{Зависимость от K, упомянотого в пункте 2.3 курсового проекта\label{overflow}}
     \label{pic1}
 \end{figure}
 
-В результате получилось, что при увеличинии константы K точность оценки параметров растёт. Но в ходе экспериментов оказалось, что нельзя делать константу К сильно большой: в противном случае точность аппроксимации падает.
+В результате получилось, что при увеличении константы K точность оценки параметров растёт. Но в ходе экспериментов оказалось, что нельзя делать константу К сильно большой: в противном случае точность аппроксимации падает.
 
 Были проведены эксперименты, где использовалась вышеописанная переклассификация и когда нет. При этом на каждой итерации выборка увеличивалась. 
 \begin{figure}[h!]
@@ -148,19 +135,19 @@ class ApproximationGEMModelNaive(ApproximationGEMModelRedesigned):
     \end{array}
 \end{equation}
 
-Построенные по формуле (\ref{eq28}) $y_i$ также как и в случае линейно регрессии будем использовать в формуле (\ref{eq3}):
+Построенные по формуле (\ref{eq28}) $y_i$ также как и в случае линейной регрессии будем использовать в формуле (\ref{eq3}):
 \begin{eqnarray}
     y_i^{\widetilde{\varepsilon}}=(\xi_i)y_i+ (1-\xi_i)\eta_i,
 \end{eqnarray}
 
 Несложно заметить, что построенные в курсовом проекте оценки никак не зависят от регрессоров, они выступают лишь как параметры, поэтому можно моделировать полиномиальную регрессию и применить к ней описанный метод.
 
-Были построены графики, схожие с рис.\ref{pic2}. В итоге получился такой график:
+Были построены графики, схожие с рис.\ref{pic0}. В итоге получился такой график:
 \begin{figure}[h!]
     \centering
     \includegraphics[width=150mm]{../images/polynomial.pdf}
-    \caption{Аппроскимация параметров в случае полиномиальной регрессии\label{overflow}}
-    \label{pic1}
+    \caption{Аппроксимация параметров в случае полиномиальной регрессии\label{overflow}}
+    \label{pic3}
 \end{figure}
 
 Видим, что обе модели имеют схожее поведение при изменении объема выборки, но построенные новые оценки стабильно показывают лучший результат.
