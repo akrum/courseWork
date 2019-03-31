@@ -17,7 +17,7 @@ def fit_data_naive_classic_visualise():
 
     plt.axis([0, sample_sizes[-1], 0, 10.0])
 
-    plt.title("Сравнение аппроксимации с МНК по средним")
+    plt.title("Сравнение вариаций с вариациями МНК по средним")
     plt.xlabel("размер выборки")
     plt.ylabel("вариации оценок")
 
@@ -51,7 +51,7 @@ def plot_with_different_sample_size_visualize():
     print(all_results_with)
     print(all_results_without)
 
-    plt.title("Сравнение аппроксимаций c вкл/выкл переклассификацией")
+    plt.title("Сравнение вариаций c вариациями оценок без переклассификации")
     plt.xlabel("размер выборки")
     plt.ylabel("вариации оценок")
 
@@ -68,7 +68,7 @@ def plot_with_different_sample_size_visualize():
                              color="red")
 
     plt.legend((plot_with, plot_without),
-               ('с классификацией', 'без классификации'),
+               ('с переклассификацией', 'без переклассификации'),
                loc='lower left',
                ncol=3,
                fontsize=8)
@@ -82,7 +82,7 @@ def plot_with_different_reclassification_level():
     print(reclassification_levels)
     print(all_results_with_classification)
 
-    plt.title("Сравнение разных уровней классификации")
+    plt.title("Сравнение разных уровней переклассификации")
     plt.xlabel("уровень классификации")
     plt.ylabel("вариации оценок")
 
@@ -109,7 +109,7 @@ def fit_data_naive_classic_polynomial():
 
     plt.axis([0, sample_sizes[-1], 0, 10.0])
 
-    plt.title("Сравнение аппроксимации с МНК по средним(полиномиальная регрессия)")
+    plt.title("Сравнение вариаций с вариациями МНК по средним(полиномиальная регрессия)")
     plt.xlabel("размер выборки")
     plt.ylabel("вариации оценок")
 
