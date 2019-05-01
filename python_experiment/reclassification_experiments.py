@@ -1,6 +1,7 @@
 import random
 import os
 import numpy as np
+from scipy import stats
 import itertools
 from collections import namedtuple
 
@@ -46,7 +47,35 @@ def compare_regressions():
     estimates_ordinary = groupingEstimates.GEM(regression_model.exogen, regression_model.true_endogen)
 
     estimates_with_outliers.classify()
-    estimates_with_outliers.reclassify(GroupingEstimatesDefines.RECLASSIFICATION_LEVEL)
+    estimates_with_outliers.reclassify()
+
+    estimates_ordinary.classify()
+
+    def _list_comparator(list1, list2):
+        for i in range(len(list1)):
+            yield list1[i] == list2[i]
+
+    difference_in_classified_positive = list(_list_comparator(estimates_ordinary._np_freq_positive, estimates_with_outliers._np_freq_positive))
+    difference_in_classified_negative = list(_list_comparator(estimates_ordinary._np_freq_negative, estimates_with_outliers._np_freq_negative))
+    full_difference_classified = difference_in_classified_positive.count(False) + difference_in_classified_negative.count(False)
+
+    difference_in_reclassified_positive = list(_list_comparator(estimates_ordinary._np_freq_positive, estimates_with_outliers._np_freq_positive_reclassified))
+    difference_in_reclassified_negative = list( _list_comparator(estimates_ordinary._np_freq_negative, estimates_with_outliers._np_freq_negative_reclassified))
+    full_difference_reclassified = difference_in_reclassified_positive.count(False) + difference_in_reclassified_negative.count(False)
+
+    print("Classes differ with/without outliers when without reclassification: %i" % full_difference_classified)
+    print("Classes differ with/without outliers when with reclassification: %i" % full_difference_reclassified)
+
+
+def compare_regressions_discreminant():
+    regression_model = modulate_regression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
+    print("modulated with outlier count: %i" % regression_model.outliers)
+
+    estimates_with_outliers = groupingEstimates.GEM(regression_model.exogen, regression_model.endogen)
+    estimates_ordinary = groupingEstimates.GEM(regression_model.exogen, regression_model.true_endogen)
+
+    estimates_with_outliers.classify()
+    estimates_with_outliers.reclassify_discreminant()
 
     estimates_ordinary.classify()
 
@@ -67,5 +96,10 @@ def compare_regressions():
 
 
 if __name__ == "__main__":
-    compare_regressions()
+    compare_regressions_discreminant()
+    # regression_model = modulate_regression(SAMPLE_SIZE, OUTLIER_PERCENTAGE)
+    # estimates_with_outliers = groupingEstimates.GEM(regression_model.exogen, regression_model.endogen)
+    # estimates_with_outliers.classify()
+    # estimates_with_outliers.reclassify_discreminant()
+    # print("average %f, covariance %f" % ())
     quit()

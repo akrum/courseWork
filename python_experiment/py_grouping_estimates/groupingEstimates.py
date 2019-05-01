@@ -5,6 +5,9 @@ from .GroupingEstimatesDefines import GroupingEstimatesDefines as Defines
 from threading import Thread
 from multiprocessing import Event
 from contextlib import contextmanager
+from scipy import stats
+from sklearn.ensemble import RandomForestClassifier
+
 
 import numpy as np
 import sys
@@ -162,7 +165,7 @@ class ApproximationGEMModelRedesigned():
 
         return
 
-    def reclassify(self, reclassify_K):
+    def reclassify_k_means(self, reclassify_K):
         if self._np_freq_positive_reclassified is not None:
             print("fit: reclassified yet")
             return
@@ -237,10 +240,57 @@ class ApproximationGEMModelRedesigned():
 
         print("fit: reclassified: %i" % count_reclassified)
 
+    def reclassify_discreminant(self):
+        all_freq = [None for i in range(self.endogen.size)]
+
+        for i in range(self.endogen.size):
+            if self._np_freq_positive[i] is not None:
+                all_freq[i] = self._np_freq_positive[i]
+            else:
+                assert self._np_freq_negative[i] is not None
+                all_freq[i] = -1 * self._np_freq_negative[i]
+
+        descibe_res = stats.describe(all_freq)
+
+        mean = descibe_res.mean
+        variance = np.sqrt(descibe_res.variance)
+
+        self._np_freq_positive_reclassified = [None for i in range(self.endogen.size)]
+        self._np_freq_negative_reclassified = [None for i in range(self.endogen.size)]
+
+        learn_x = []
+        learn_y = []
+
+        for i in range(self.endogen.size):
+            if mean - 0.9 * variance <= all_freq[i] <= mean + 0.9 * variance:
+                learn_x.append(self.exogen[i])
+                learn_y.append(all_freq[i])
+            else:
+                all_freq[i] = None
+
+        rfc = RandomForestClassifier()
+
+        learn_x = np.array(learn_x)
+        learn_y = np.array(learn_y, dtype=np.int64)
+        rfc_classificator = rfc.fit(learn_x, learn_y)
+
+        for i in range(self.endogen.size):
+            if all_freq[i] is None:
+                all_freq[i] = rfc_classificator.predict(np.copy(self.exogen[i]).reshape(1, -1))[0]
+            if all_freq[i] >= 0:
+                self._np_freq_positive_reclassified[i] = all_freq[i]
+            else:
+                self._np_freq_negative_reclassified = -1 * all_freq[i]
+
+        print("fit: reclassificator scored %f on learning set:" % rfc_classificator.score(learn_x, learn_y))
+
+    def reclassify(self):
+        self.reclassify_k_means(Defines.RECLASSIFICATION_LEVEL)
+
     def fit(self):
         print("")
         self.classify()
-        self.reclassify(Defines.RECLASSIFICATION_LEVEL)
+        self.reclassify()
 
         print("fit: fitting.....")
 
