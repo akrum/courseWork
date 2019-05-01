@@ -240,7 +240,7 @@ class ApproximationGEMModelRedesigned():
 
         print("fit: reclassified: %i" % count_reclassified)
 
-    def reclassify_discreminant(self):
+    def reclassify_discreminant(self, learn_sample_part=0.98):
         all_freq = [None for i in range(self.endogen.size)]
 
         for i in range(self.endogen.size):
@@ -262,7 +262,7 @@ class ApproximationGEMModelRedesigned():
         learn_y = []
 
         for i in range(self.endogen.size):
-            if mean - 0.9 * variance <= all_freq[i] <= mean + 0.9 * variance:
+            if mean - learn_sample_part * variance <= all_freq[i] <= mean + learn_sample_part * variance:
                 learn_x.append(self.exogen[i])
                 learn_y.append(all_freq[i])
             else:

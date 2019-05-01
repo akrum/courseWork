@@ -75,7 +75,7 @@ def compare_regressions_discreminant():
     estimates_ordinary = groupingEstimates.GEM(regression_model.exogen, regression_model.true_endogen)
 
     estimates_with_outliers.classify()
-    estimates_with_outliers.reclassify_discreminant()
+    estimates_with_outliers.reclassify_discreminant(0.9)
 
     estimates_ordinary.classify()
 
