@@ -4,13 +4,13 @@ import numpy as np
 
 class CreateDefines:
     METHOD_ACCURACY = 1e-7
-    INTERVAL_LENGTH = 1e-2
+    INTERVAL_LENGTH = 3.0
     K_EVERY_SEGMENT = 50000000
     SIGMA_SQ = 225.0
     THREAD_JOIN_TIMEOUT = 10
     COUNT_LIMIT_OPERATIONS = 1e2
     LEFT_BOUND_EVERY_VAR_INDENT = 20.0
-    RECLASSIFICATION_LEVEL = 10
+    RECLASSIFICATION_LEVEL = 35
 
     @property
     def a(self):

@@ -7,10 +7,17 @@ from multiprocessing import Event
 from contextlib import contextmanager
 from scipy import stats
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
 
 
 import numpy as np
 import sys
+
+
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
@@ -240,7 +247,7 @@ class ApproximationGEMModelRedesigned():
 
         print("fit: reclassified: %i" % count_reclassified)
 
-    def reclassify_discreminant(self, learn_sample_part=0.98):
+    def reclassify_using_lof(self, **kwargs):
         all_freq = [None for i in range(self.endogen.size)]
 
         for i in range(self.endogen.size):
@@ -250,10 +257,14 @@ class ApproximationGEMModelRedesigned():
                 assert self._np_freq_negative[i] is not None
                 all_freq[i] = -1 * self._np_freq_negative[i]
 
-        descibe_res = stats.describe(all_freq)
+        isolation_forest = LocalOutlierFactor(Defines.RECLASSIFICATION_LEVEL)
+        # isolation_forest = IsolationForest()
+        possible_outliers = isolation_forest.fit_predict(np.array(all_freq).reshape(-1, 1))
+        if "outlier_table" in kwargs:
+            # print(kwargs["outlier_table"] - possible_outliers)
+            # print("(-2: wrong treated as right, +2: right treated as wrong)")
 
-        mean = descibe_res.mean
-        variance = np.sqrt(descibe_res.variance)
+            print("wrong outliers: %i" % (possible_outliers != kwargs["outlier_table"]).sum())
 
         self._np_freq_positive_reclassified = [None for i in range(self.endogen.size)]
         self._np_freq_negative_reclassified = [None for i in range(self.endogen.size)]
@@ -262,7 +273,7 @@ class ApproximationGEMModelRedesigned():
         learn_y = []
 
         for i in range(self.endogen.size):
-            if mean - learn_sample_part * variance <= all_freq[i] <= mean + learn_sample_part * variance:
+            if possible_outliers[i] == 1:  # if not outlier
                 learn_x.append(self.exogen[i])
                 learn_y.append(all_freq[i])
             else:
@@ -280,9 +291,12 @@ class ApproximationGEMModelRedesigned():
             if all_freq[i] >= 0:
                 self._np_freq_positive_reclassified[i] = all_freq[i]
             else:
-                self._np_freq_negative_reclassified = -1 * all_freq[i]
+                self._np_freq_negative_reclassified[i] = -1 * all_freq[i]
 
         print("fit: reclassificator scored %f on learning set:" % rfc_classificator.score(learn_x, learn_y))
+        print("fit: reclassified\n")
+
+        return rfc_classificator
 
     def reclassify(self):
         self.reclassify_k_means(Defines.RECLASSIFICATION_LEVEL)
