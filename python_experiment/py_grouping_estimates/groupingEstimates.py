@@ -173,13 +173,6 @@ class ApproximationGEMModelRedesigned():
         return
 
     def reclassify_k_means(self, reclassify_K):
-        if self._np_freq_positive_reclassified is not None:
-            print("fit: reclassified yet")
-            return
-        if self._np_freq_negative_reclassified is not None:
-            print("fit: reclassified yet")
-            return
-
         self._np_freq_positive_reclassified = [None for i in range(self.endogen.size)]
         self._np_freq_negative_reclassified = [None for i in range(self.endogen.size)]
 
@@ -272,12 +265,14 @@ class ApproximationGEMModelRedesigned():
         learn_x = []
         learn_y = []
 
+        outlier_reclassification_count = 0
         for i in range(self.endogen.size):
             if possible_outliers[i] == 1:  # if not outlier
                 learn_x.append(self.exogen[i])
                 learn_y.append(all_freq[i])
             else:
                 all_freq[i] = None
+                outlier_reclassification_count += 1
 
         rfc = RandomForestClassifier()
 
@@ -294,12 +289,19 @@ class ApproximationGEMModelRedesigned():
                 self._np_freq_negative_reclassified[i] = -1 * all_freq[i]
 
         print("fit: reclassificator scored %f on learning set:" % rfc_classificator.score(learn_x, learn_y))
-        print("fit: reclassified\n")
+        print("fit: reclassified %i\n" % outlier_reclassification_count)
 
         return rfc_classificator
 
     def reclassify(self):
-        self.reclassify_k_means(Defines.RECLASSIFICATION_LEVEL)
+        if self._np_freq_positive_reclassified is not None:
+            print("fit: reclassified yet")
+            return
+        if self._np_freq_negative_reclassified is not None:
+            print("fit: reclassified yet")
+            return
+
+        self.reclassify_using_lof()
 
     def fit(self):
         print("")
