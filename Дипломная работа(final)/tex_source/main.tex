@@ -1,0 +1,129 @@
+\documentclass[a4paper,14pt]{extarticle}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{amssymb}
+\usepackage{fancyvrb}
+\usepackage[fleqn]{amsmath}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{hyperref} 
+\usepackage{indentfirst}
+\usepackage{caption}
+\usepackage[left=3cm,right=1cm, top=2cm, bottom=2cm, bindingoffset=0cm]{geometry}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+% \textwidth = 16cm
+% \usepackage{biblatex}
+\usepackage{graphicx}
+\usepackage{parskip}
+% \addbibresource{bibliography.bib} 
+\newtheorem{theorem}{Теорема}
+\newenvironment{rowequmat}[1]{\left(\array{@{}#1@{}}}{\endarray\right)}
+
+% \newenvironment{dwverbatim}{\begin{Verbatim}[fontsize=\scriptsize]} {\end{Verbatim}}
+
+\sloppy
+\parindent=0.5cm
+\title{Курсовой проект}
+\author{\copyright Андрей Румянцев}
+\date{29 ноября 2016}
+\selectlanguage{russian}
+\allowhyphens
+\begin{document}
+
+\input{first_page.tex}
+
+\newpage 
+~~~~~~~~~
+\thispagestyle{empty}
+\addtocounter{page}{-1}
+\mbox{}
+\newpage
+
+
+\tableofcontents
+\newpage 
+
+% \input{task.tex}
+% \newpage
+
+
+\input{intro.tex} 
+\newpage
+
+\input{main_part.tex}
+\newpage
+
+\input{conclustion.tex}
+\newpage
+
+\newpage
+\addcontentsline{toc}{section}{Список Литературы}
+\begin{thebibliography}{8}
+    \bibitem{Huber}
+    Хьюбер Дж П.~
+    \textit{Робастность в статистике:пер. с англ.} --
+    М.:Мир, 1984.-304 с.
+
+    \bibitem{Kharin}
+    Харин Ю.С., Зуев Н.М.,
+    Жук Е.Е.~
+    \textit{Теория вероятностей, математическая и прикладная статистика: учебник} --
+    Минск: БГУ, 2011.-463 с.
+
+    
+
+    \bibitem{OLSforGrouping}
+    Е. С Агеева, чл.-корр. НАН Беларуси Ю.С. Харин~
+    \textit{Состоятельность оценки максимального правдопобия параметров множественной регрессии по классифицированным наблюдениям}
+
+    \bibitem{RobustRegression}
+    John Fox, Sanford Weisberg~
+    \textit{Robust Regression} --
+    October 8, 2013
+
+    \bibitem{RobustPolynomialEstimation}
+    А.В. Омельченко~
+    \textit{Робастное оценивание параметров полиномиальной регрессии второго порядка} --
+    Харьковский национальный университет радиоэлектроники, Украина, 2009
+
+    \bibitem{ComparisonRobust}
+    \"{O}zlem G\"{u}r\"{u}nl\"{u} Alma~
+    \textit{Comparison of Robust Regression Methods
+    in Linear Regression} -- 
+    Int. J. Contemp. Math. Sciences, Vol. 6, 2011, no. 9, 409 - 421 с.
+
+    \bibitem{Winitzki}
+    Sergei Winitzki~
+    \textit{A handy approximation for the error function and its inverse.}
+
+    \bibitem{NumericalMethods}
+    Мандрик П.А., Репников В.И., Фалейчик Б.В.,
+    \textit{Численные методы} [Электронный ресурс].
+
+    \bibitem{interval_valued}
+    Paolo Giordani~
+    \textit{Linear regression analysis for interval-valued data based on the Lasso technique} --
+    Department of Statistical Sciences Sapienza University of Rome
+
+    \bibitem{minkowski}
+    Masahiro Inuiguchi, Tetsuzo Tanino,~
+    \textit{interval linear regression methods based on minkowski difference a bridge between traditional and interval linear regression models.} --
+    KYBERNETIKA, volume 42, 2006 , number 4, pages 423 - 440
+
+    \bibitem{technometrics}
+     Nelson, W., Hahn, G.J.~
+    \textit{Technometrics}. 
+    volume 14, 1972, pages 247–269.
+\end{thebibliography}
+\newpage
+
+\input{attachment.tex}
+
+\end{document}
