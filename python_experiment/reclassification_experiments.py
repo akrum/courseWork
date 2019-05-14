@@ -11,8 +11,8 @@ from py_grouping_estimates.GroupingEstimatesDefines import GroupingEstimatesDefi
 
 ACCURATE_RESULT = np.matrix([90, 4]).T
 RegressionResult = namedtuple("RegressionResult", ["exogen", "endogen", "true_endogen", "outliers", "outlier_table"])
-OUTLIER_PERCENTAGE = 8.0
-SAMPLE_SIZE = 100000
+OUTLIER_PERCENTAGE = 6.0
+SAMPLE_SIZE = 1 * (10 ** 5)
 
 
 def modulate_regression(regression_sample_quintity, regression_outlier_percentage):
