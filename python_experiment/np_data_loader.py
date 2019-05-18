@@ -135,6 +135,6 @@ def fit_data_naive_classic_polynomial():
 
 
 if __name__ == "__main__":
-    fit_data_naive_classic_polynomial()
+    plot_with_different_sample_size_visualize()
 
     quit()

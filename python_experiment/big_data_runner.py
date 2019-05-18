@@ -10,9 +10,9 @@ from py_grouping_estimates import GroupingEstimatesDefines
 ACCURATE_RESULT = np.matrix([90, 4]).T
 OUTLIER_PERCENTAGE = 8.0
 SECONDS_TIMEOUT = 60 * 5
-SAMPLE_SIZE_MIN = 100
-SAMPLE_SIZE_MAX = 5000
-SAMPLE_SIZE_STEP = 100
+SAMPLE_SIZE_MIN = 500
+SAMPLE_SIZE_MAX = 1200
+SAMPLE_SIZE_STEP = 50
 np.seterr(all='raise')
 NP_DATA_PATH = "./np_data_created/"
 
@@ -102,13 +102,13 @@ def plot_with_different_sample_size():
     y_points = None
 
     for sample_size in range(SAMPLE_SIZE_MIN, SAMPLE_SIZE_MAX+1, SAMPLE_SIZE_STEP):
+        print("fitting with sample size: {}".format(sample_size))
         successful_fit = False
         while not successful_fit:
-            x_points_t, y_points_t = modulateRegression(sample_size, OUTLIER_PERCENTAGE)
+            x_points_t, y_points_t = modulateRegression(SAMPLE_SIZE_STEP, OUTLIER_PERCENTAGE)
 
             if x_points is None or y_points is None:
-                x_points = x_points_t
-                y_points = y_points_t
+                x_points, y_points = modulateRegression(SAMPLE_SIZE_MIN, OUTLIER_PERCENTAGE)
             else:
                 x_points = np.append(x_points, x_points_t, axis=0)
                 y_points = np.append(y_points, y_points_t, axis=0)
@@ -117,6 +117,10 @@ def plot_with_different_sample_size():
             try:
                 result = approx_model.fit()
                 print("GEM {}".format(result))
+
+                if (result < np.matrix([80.0, 0.0]).T).any() or (result > np.matrix([100.0, 10.0]).T).any():
+                    continue
+
                 result_without = approx_model.fit_without_reclassification()
                 print("GEM_without {}".format(result_without))
 
@@ -221,5 +225,5 @@ def plot_with_different_reclassification_level():
 if __name__ == "__main__":
     if not os.path.exists(NP_DATA_PATH):
         os.makedirs(NP_DATA_PATH)
-    fit_data_naive_classic_polynomial()
+    plot_with_different_sample_size()
     quit()
