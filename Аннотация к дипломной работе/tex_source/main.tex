@@ -1,0 +1,47 @@
+\documentclass[a4paper,14pt]{extarticle}
+\usepackage[utf8]{inputenc}
+\usepackage[T1, T2A]{fontenc}
+\usepackage[belarusianb, russian]{babel}
+
+
+\usepackage{amssymb}
+\usepackage{fancyvrb}
+\usepackage{amsmath}
+\usepackage{hyperref} 
+\usepackage{indentfirst}
+\usepackage{caption}
+\usepackage[left=3cm,right=1cm, top=2cm, bottom=2cm, bindingoffset=0cm]{geometry}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+% \textwidth = 16cm
+% \usepackage{biblatex}
+\usepackage{graphicx}
+\usepackage{parskip}
+% \addbibresource{bibliography.bib} 
+\newtheorem{theorem}{Теорема}
+\newenvironment{rowequmat}[1]{\left(\array{@{}#1@{}}}{\endarray\right)}
+
+% \newenvironment{dwverbatim}{\begin{Verbatim}[fontsize=\scriptsize]} {\end{Verbatim}}
+
+\sloppy
+\parindent=1.5cm
+\title{Аннотация к дипломной работей}
+\author{\copyright Андрей Румянцев}
+\date{7 июня 2019}
+\selectlanguage{russian}
+\allowhyphens
+\begin{document}
+
+\input{first_page.tex}
+
+\newpage 
+
+\input{abstract.tex}
+\newpage
+
+\end{document}
